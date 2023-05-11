@@ -1,0 +1,32 @@
+{
+    "name": "samyapp/laravel-remote-auth",
+    "description": "Laravel authentication guard for authentication based on headers or environment variables set by an authenticating reverse proxy.",
+    "type": "library",
+    "version": "0.1",
+    "require-dev": {
+        "orchestra/testbench": "^8.0",
+        "phpunit/phpunit": "^9.5"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "SamYapp\\LaravelRemoteAuth\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Sam Yapp",
+            "email": "sam@samyapp.com"
+        }
+    ],
+    "require": {
+        "illuminate/support": "^9.21|^10.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SamYapp\\LaravelRemoteAuth\\RemoteAuthServiceProvider"
+            ]
+        }
+    }
+}
