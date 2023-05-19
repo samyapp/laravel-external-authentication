@@ -25,7 +25,7 @@ class AuthConfig
 	/** @var ?string - if not null, then if the required header does not have this value, auth will fail */
 	public ?string $requiredHeaderValue = null;
     
-    /** @var AuthAttribute[] */
+    /** @var AuthAttribute[] - the expected attribute definitions */
 	public array $expectedAttributes = [];
 
     /** @var array|string[] attributes to pass to UserProvider::retrieveByCredentials */
@@ -33,6 +33,15 @@ class AuthConfig
 
     /** @var array|string[] attribute names to update on the persisted user model */
     public array $syncAttributes = [];
+
+    /**
+     * @var array [remoteName => value] attributes to make available as server vars
+     * for use in development environment without a real remote authentication proxy configured
+     */
+    public array $developmentAttributes = [];
+
+    /** @var bool - whether or not to add $developmentAttributes to server vars */
+    public bool $developmentMode = false;
 
     /** @var null|callable - optional callable to map remote variables to user attributes */
     protected mixed $mapAttributes = null;

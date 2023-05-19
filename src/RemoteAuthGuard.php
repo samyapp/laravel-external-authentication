@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
+use Illuminate\Log\Logger;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -29,14 +30,16 @@ class RemoteAuthGuard implements Guard
      * @param array $config - array of configuration information
      */
     public function __construct(
-        UserProvider $provider,
         AuthConfig  $config,
-        Request     $request,
+        UserProvider $provider,
+        array     $input,
+        Logger  $logger,
     )
     {
         $this->setProvider($provider);
         $this->config = $config;
-        $this->request = $request;
+        $this->input = $input;
+        $this->logger = $logger;
     }
 
     /**
@@ -46,7 +49,9 @@ class RemoteAuthGuard implements Guard
     {
         // if we already have a user for *this request* we don't need to redo everything
         if (is_null($this->user)) {
-            if ($userAttributes = $this->getRemoteAttributes($this->config, $this->request->server())) {
+            // otherwise, see if our attributes are set in the server, request or env
+            if ($userAttributes = $this->config->attributeMapper()($this->config, $this->input)) {
+                // if we have attributes, do they meet our validation criteria?
                 if ($userAttributes = $this->validateAttributes($this->config, $userAttributes)) {
                     $credentials = array_intersect_key($userAttributes, array_flip($this->config->credentialAttributes));
                     $this->user = $this->getProvider()->retrieveByCredentials($credentials);
@@ -57,24 +62,31 @@ class RemoteAuthGuard implements Guard
                         $this->syncUser($this->user, $this->config);
                     }
                 } else {
-                    // log attributes were invalid, optionally throw an exception
+                    $this->logger->warning(sprintf('%s::%s - attributes invalid', __CLASS__, __METHOD__),$userAttributes);
                 }
             } else {
-                // log no attributes passed
+                $this->logger->notice(
+                    sprintf('%s::%s - no attributes present', __CLASS__, __METHOD__),
+                    $this->request->server(),
+                );
             }
         }
         return $this->user;
     }
 
+    /**
+     * Log the given user into the application
+     * @param Authenticatable $user
+     * @return void
+     */
+    public function login(Authenticatable $user)
+    {
+        $this->setUser($user);
+    }
+
     public function syncUser(AuthConfig $config, Authenticatable $user)
     {
         $user->save();
-    }
-
-    public function getRemoteAttributes(AuthConfig $config, array $input): array|false
-    {
-        $mappedAttributes = $config->attributeMapper()($config, $input);
-        return $this->validateAttributes($config, $mappedAttributes);
     }
 
     public function validateAttributes(AuthConfig $config, array $attributes): array|false

@@ -34,6 +34,8 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
             'requiredHeaderValue' => 'Bearer 12345',
             'credentialAttributes' => ['username', 'password'],
             'syncAttributes' => ['username'],
+            'developmentMode' => true,
+            'developmentAttributes' => ['foo' => 'bar', 'foobar' => true],
         ];
         $allProperties = array_merge($properties, [
             // this gets set to a protected property with an accessor
@@ -54,7 +56,16 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
             $this->assertArrayHasKey($attribute->name, $allProperties['expectedAttributes']);
         }
     }
-    
+
+    /**
+     * @test
+     */
+    public function fromArrayThrowsInvalidArgumentExceptionForUnknownConfigurationSettings()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        AuthConfig::fromArray(['foo' => 'bar']);
+    }
+
     /**
      * @test
      */

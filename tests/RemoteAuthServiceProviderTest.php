@@ -10,6 +10,7 @@ use SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider;
  */
 class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
 {
+    protected $developmentAttributes = ['foo' => 'bar', 'one' => 'two'];
     /**
      * Get package providers.
      *
@@ -46,5 +47,28 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
     public function ServiceProviderRegistersGuard()
     {
         $this->assertInstanceOf(RemoteAuthGuard::class, auth()->guard('web'));
+    }
+
+    /** @test */
+    public function ServiceProviderSetsInputToServerVarsByDefault()
+    {
+        $this->assertEquals(app('request')->server(), auth()->guard('web')->input);
+    }
+
+    protected function enableDevelopmentMode($app)
+    {
+        $app->config->set('remote-auth', []);
+//        $app->config->set('remote-auth.developmentMode', true);
+//        $app->config->set('remote-auth.developmentAttributes', $this->developmentAttributes);
+    }
+
+    /**
+     * @test
+     * @define-env enableDevelopmentMode
+     */
+    public function ServiceProviderSetsInputToDevelopmentAttributesIfEnabled()
+    {
+        dump(auth()->guard('web')->config);
+        $this->assertEquals($this->developmentAttributes, auth()->guard('web')->input);
     }
 }

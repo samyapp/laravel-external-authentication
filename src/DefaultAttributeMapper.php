@@ -22,8 +22,6 @@ class DefaultAttributeMapper
         $attributes = [];
         foreach ($config->expectedAttributes as $attribute) {
             $key = $config->attributePrefix . $attribute->remoteName;
-            $lowerKey = strtolower($key);
-            $upperKey = strtoupper($key);
             // if an match exists for exact key or lower or uppercase take that value
             foreach ([$key, strtolower($key), strtoupper($key)] as $inputKey) {
                 if (array_key_exists($inputKey, $input)) {
