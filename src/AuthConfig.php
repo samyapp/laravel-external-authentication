@@ -43,6 +43,9 @@ class AuthConfig
     /** @var bool - whether or not to add $developmentAttributes to server vars */
     public bool $developmentMode = false;
 
+    /** @var string - the key in config/auth.php 'providers' defining which user provider to use */
+    public string $userProvider = 'users';
+
     /** @var null|callable - optional callable to map remote variables to user attributes */
     protected mixed $mapAttributes = null;
     

@@ -67,7 +67,7 @@ class RemoteAuthGuard implements Guard
             } else {
                 $this->logger->notice(
                     sprintf('%s::%s - no attributes present', __CLASS__, __METHOD__),
-                    $this->request->server(),
+                    $this->input
                 );
             }
         }
@@ -75,7 +75,8 @@ class RemoteAuthGuard implements Guard
     }
 
     /**
-     * Log the given user into the application
+     * Log the given user into the application. This isn't part of the Guard interface, but is referenced
+     * in Laravel documentation.
      * @param Authenticatable $user
      * @return void
      */

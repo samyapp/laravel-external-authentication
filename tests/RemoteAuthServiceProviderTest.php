@@ -2,8 +2,10 @@
 
 namespace Tests;
 
+use Illuminate\Config\Repository;
 use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
 use SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider;
+use SamYapp\LaravelRemoteAuth\TransientUserProvider;
 
 /**
  * @covers \SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider
@@ -33,12 +35,16 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
      */
     protected function defineEnvironment($app)
     {
-        // Setup default database to use sqlite :memory:
         $app['config']->set('auth.guards.web.driver', 'remote-auth');
-        $app['config']->set('remote-auth', [
-            'createMissingUsers' => true,
-            'attributePrefix' => 'X-Test-',
-        ]);
+        // define a default config, but allow overriding with already configured by @define-env
+        $app['config']->set('remote-auth', array_merge([
+                'createMissingUsers' => true,
+                'attributePrefix' => 'X-Test-',
+            ],
+            // may have already been partially defined by @define-env
+            $app['config']->get('remote-auth',[])
+            )
+        );
     }
 
     /**
@@ -49,6 +55,20 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         $this->assertInstanceOf(RemoteAuthGuard::class, auth()->guard('web'));
     }
 
+    protected function useTransientUserProvider($app)
+    {
+        $app['config']->set('auth.providers.users.driver', 'transient');
+    }
+
+    /**
+     * @test
+     * @define-env useTransientUserProvider
+     */
+    public function ServiceProviderRegistersTransientUserProvider()
+    {
+        $this->assertInstanceOf(TransientUserProvider::class, auth()->getProvider());
+    }
+
     /** @test */
     public function ServiceProviderSetsInputToServerVarsByDefault()
     {
@@ -57,9 +77,8 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
 
     protected function enableDevelopmentMode($app)
     {
-        $app->config->set('remote-auth', []);
-//        $app->config->set('remote-auth.developmentMode', true);
-//        $app->config->set('remote-auth.developmentAttributes', $this->developmentAttributes);
+        $app['config']->set('remote-auth.developmentMode', true);
+        $app['config']->set('remote-auth.developmentAttributes', $this->developmentAttributes);
     }
 
     /**
@@ -68,7 +87,6 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
      */
     public function ServiceProviderSetsInputToDevelopmentAttributesIfEnabled()
     {
-        dump(auth()->guard('web')->config);
         $this->assertEquals($this->developmentAttributes, auth()->guard('web')->input);
     }
 }
