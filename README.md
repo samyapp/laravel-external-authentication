@@ -30,9 +30,11 @@ avoid other users on the network being able to make requests with forged headers
 
 ### Secure Token
 
-To add an additional layer of security the RemoteGuard can require that
+@TODO implement this elsewhere?
+
+~~To add an additional layer of security the RemoteGuard can require that
 an additional header or environment variable gets set with a specific
-secret value by the authentication server.
+secret value by the authentication server.~~
 
 ## Quickstart
 
@@ -70,7 +72,7 @@ for name, email, phone, etc) if they differ from what was previously stored.
 
 You should use the standard Laravel methods to authorize users for specific routes or actions.
 
-RemoteGuard also includes optional middleware to authorize users based on the presence, absence
+@todo RemoteGuard also includes optional middleware to authorize users based on the presence, absence
 or values of the attributes set on the user model.
 
 ## Configuration

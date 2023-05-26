@@ -13,23 +13,17 @@ class AuthConfig
 	/** @var string - the name for this auth guard */
 	public string $id = 'remote-auth';
 
-	/** @var bool - should users be created if they are authenticated but don't exist? */
+	/** @var bool - should users be created if they are authenticated but don't exist */
 	public bool $createMissingUsers = false;
 
 	/** @var string - optional prefix to prepend when retrieving attributes from headers or environment variables */
 	public string $attributePrefix = '';
 
-	/** @var ?string - if no header with this name is present, auth will fail */
-	public ?string $requiredHeaderName = null;
-
-	/** @var ?string - if not null, then if the required header does not have this value, auth will fail */
-	public ?string $requiredHeaderValue = null;
-    
-    /** @var AuthAttribute[] - the expected attribute definitions */
-	public array $expectedAttributes = [];
-
-    /** @var array|string[] attributes to pass to UserProvider::retrieveByCredentials */
+    /** @var array|string[] names of attributes to pass to UserProvider::retrieveByCredentials */
     public array $credentialAttributes = ['email'];
+
+    /** @var AuthAttribute[] - the expected attribute definitions keyed by attribute name */
+	public array $attributeMap = [];
 
     /** @var array|string[] attribute names to update on the persisted user model */
     public array $syncAttributes = [];
@@ -48,6 +42,9 @@ class AuthConfig
 
     /** @var null|callable - optional callable to map remote variables to user attributes */
     protected mixed $mapAttributes = null;
+
+    /** @var callabe|null - optional callable to persist changed user attributes  */
+    protected mixed $syncUser = null;
     
 	/**
 	 * Initialise an AuthConfig from a config array
@@ -57,8 +54,8 @@ class AuthConfig
 	public static function fromArray(array $config): AuthConfig
 	{
 		$instance = new static();
-		if (isset($config['expectedAttributes'])) {
-			$config['expectedAttributes'] = static::attributesFromArray($config['expectedAttributes']);
+		if (isset($config['attributeMap'])) {
+			$config['attributeMap'] = static::attributesFromArray($config['attributeMap']);
 		}
         foreach ($config as $key => $value) {
             if (property_exists($instance, $key)) {
@@ -71,12 +68,22 @@ class AuthConfig
 	}
 
     /**
+     * Get the callable to sync the user attributes with the database / storage
+     * @return callable - (Authenticatble $user, AuthConfig $config): void
+     */
+    public function userSyncer(): callable
+    {
+        return is_callable($this->syncUser) ? $this->syncUser : ($this->syncUser = new DefaultUserSyncer());
+    }
+    
+    /**
      * @return callable - (AuthConfig $config, array $remoteData) => [ user-attributes]
      */
     public function attributeMapper(): callable
     {
         return is_callable($this->mapAttributes) ? $this->mapAttributes : ($this->mapAttributes = new DefaultAttributeMapper());
     }
+
 
     /**
 	 * Create an array of AuthAttribute from an array in config format
@@ -87,7 +94,7 @@ class AuthConfig
 	{
 		$attributes = [];
 		foreach ($attrs as $attributeName => $attributeDetails) {
-			// each entry in expectedAttributes can be in the form:
+			// each entry in attributeMap can be in the form:
 			// 'attributeName',
 			// 'attributeName' => 'remoteName',
 			// or 'attributeName' => [ 'remote' => 'remoteName', 'required' => true|false ]

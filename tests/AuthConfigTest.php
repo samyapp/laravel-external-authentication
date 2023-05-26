@@ -30,8 +30,6 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
             'id' => 'remote-authy',
             'createMissingUsers' => true,
             'attributePrefix' => 'SAML_',
-            'requiredHeaderName' => 'Authorization',
-            'requiredHeaderValue' => 'Bearer 12345',
             'credentialAttributes' => ['username', 'password'],
             'syncAttributes' => ['username'],
             'developmentMode' => true,
@@ -41,7 +39,7 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
             // this gets set to a protected property with an accessor
             'mapAttributes' => fn () => 'test',
             // these get converted to AuthAttribute[]
-            'expectedAttributes' => ['username' => 'mail', 'password' => 'pass'],
+            'attributeMap' => ['username' => 'mail', 'password' => 'pass'],
         ]);
         $config = AuthConfig::fromArray($allProperties);
         // check public properties set
@@ -50,10 +48,10 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         }
         // check attribute mapper is set
         $this->assertEquals($allProperties['mapAttributes'], $config->attributeMapper());
-        // check expectedAttributes has expected number
-        $this->assertCount(count($allProperties['expectedAttributes']), $config->expectedAttributes);
-        foreach ($config->expectedAttributes as $attribute) {
-            $this->assertArrayHasKey($attribute->name, $allProperties['expectedAttributes']);
+        // check attributeMap has expected number
+        $this->assertCount(count($allProperties['attributeMap']), $config->attributeMap);
+        foreach ($config->attributeMap as $attribute) {
+            $this->assertArrayHasKey($attribute->name, $allProperties['attributeMap']);
         }
     }
 
@@ -98,10 +96,9 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
 		$defaultConfig = AuthConfig::fromArray([]);
 		$properties = [
 			'createMissingUsers' => true,
-			'requiredHeaderName' => 'Auth',
 		];
 		$modifiedConfig = AuthConfig::fromArray($properties);
-		foreach (['id', 'attributePrefix', 'requiredHeaderValue'] as $unchangedProperty) {
+		foreach (['id', 'attributePrefix'] as $unchangedProperty) {
 			$this->assertEquals($defaultConfig->$unchangedProperty, $modifiedConfig->$unchangedProperty);
 		}
     }
@@ -118,7 +115,7 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
             'sameName',
             // required attribute named "localName" from remote var "remoteName"
             'localName' => 'remoteName',
-            // required attribute "requiredAttribute" with remote name "remoteAttribute"
+            // required attribute "requiredrequiredAttribute" with remote name "remoteAttribute"
             'requiredAttribute' => ['remote' => 'remoteAttribute', 'required' => true],
             // optional attribute "optionalAttribute" with remote name "remoteAttribute"
             'optionalAttribute' => ['remote' => 'remoteAttribute', 'required' => false],

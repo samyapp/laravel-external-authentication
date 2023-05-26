@@ -31,7 +31,7 @@ class DefaultAttributeMapperTest extends \PHPUnit\Framework\TestCase
             'MELLON_remoteTwo' => 'twoValue',
         ];
         $config = AuthConfig::fromArray([
-            'expectedAttributes' => [
+            'attributeMap' => [
                 'single',
                 'one' => 'remoteOne',
                 'two' => 'remoteTwo',
@@ -49,7 +49,7 @@ class DefaultAttributeMapperTest extends \PHPUnit\Framework\TestCase
     {
         // the configured attributes and mappings expected
         $config = AuthConfig::fromArray([
-            'expectedAttributes' => [
+            'attributeMap' => [
                 'single',
                 'firstArray' => '.*?_first_.*', // match a regex
                 'secondArray' => 'MELLON_second.*', // match a different regex

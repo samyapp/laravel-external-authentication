@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
 use Illuminate\Log\Logger;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -23,6 +24,9 @@ class RemoteAuthGuard implements Guard
 
     /** @var AuthConfig - configuration information */
     public AuthConfig $config;
+
+    /** @var bool - true if logout() has been called in the current request, unless login() has since been called */
+    protected $loggedOut = false;
 
     /**
      * Create a new authentication guard.
@@ -48,23 +52,30 @@ class RemoteAuthGuard implements Guard
     public function user()
     {
         // if we already have a user for *this request* we don't need to redo everything
-        if (is_null($this->user)) {
+        if (!$this->loggedOut && is_null($this->user)) {
             // otherwise, see if our attributes are set in the server, request or env
             if ($userAttributes = $this->config->attributeMapper()($this->config, $this->input)) {
                 // if we have attributes, do they meet our validation criteria?
-                if ($userAttributes = $this->validateAttributes($this->config, $userAttributes)) {
+                if (!($missingAttributes = $this->getMissingRequiredAttributes($this->config, $userAttributes))) {
+                    // use the attributes we consider credentials to retrieve the user
                     $credentials = array_intersect_key($userAttributes, array_flip($this->config->credentialAttributes));
                     $this->user = $this->getProvider()->retrieveByCredentials($credentials);
+                    // if the user wasn't found, can we create a new one?
                     if (!$this->user && $this->config->createMissingUsers) {
-                        $this->user = $this->createUserFromAttributes($remoteData);
+                        $this->user = $this->createUserFromAttributes($userAttributes);
                     }
-                    if ($this->user && $this->config->syncAttributes) {
-                        $this->syncUser($this->user, $this->config);
+                    if ($this->user) {
+                        // assign the userAttributes to the user object
+                        $this->setAttributes($this->user, $userAttributes);
+                        // should we persist user attributes from remote with internal model?
+                        $this->config->syncAttributes && $this->config->userSyncer()($this->user, $config);
                     }
                 } else {
-                    $this->logger->warning(sprintf('%s::%s - attributes invalid', __CLASS__, __METHOD__),$userAttributes);
+                    // attributes present but invalid
+                    $this->logger->warning(sprintf('%s::%s - attributes missing', __CLASS__, __METHOD__),$missingAttributes);
                 }
             } else {
+                // no attributes set at all
                 $this->logger->notice(
                     sprintf('%s::%s - no attributes present', __CLASS__, __METHOD__),
                     $this->input
@@ -75,6 +86,24 @@ class RemoteAuthGuard implements Guard
     }
 
     /**
+     * Sets the attributes for the user
+     * @param Authenticatable $user
+     * @param array $userAttributes
+     * @return void
+     */
+    public function setAttributes(Authenticatable $user, array $userAttributes)
+    {
+        foreach ($userAttributes as $key => $value) {
+            $this->user->$key = $value;
+        }
+    }
+
+    public function syncUser(AuthConfig $config, Authenticatable $user)
+    {
+        $user->save();
+    }
+    
+    /**
      * Log the given user into the application. This isn't part of the Guard interface, but is referenced
      * in Laravel documentation.
      * @param Authenticatable $user
@@ -83,42 +112,20 @@ class RemoteAuthGuard implements Guard
     public function login(Authenticatable $user)
     {
         $this->setUser($user);
-    }
-
-    public function syncUser(AuthConfig $config, Authenticatable $user)
-    {
-        $user->save();
-    }
-
-    public function validateAttributes(AuthConfig $config, array $attributes): array|false
-    {
-        return $attributes;
+        $this->loggedOut = false;
     }
 
     /**
-     * Get the user object from the UserProvider based on credentials / saml attributes
-     * @param UserProvider $provider
-     * @param array $attributes
-     * @return Authenticatable
+     * Gets an array containing the required AuthAttributes missing from the input array
+     * @param AuthConfig $config
+     * @param array $attributes - key => value of attributes passed to the app
+     * @return AuthAttribute[]
      */
-    public function getAuthenticatedUser(UserProvider $provider, array $attributes)
+    public function getMissingRequiredAttributes(AuthConfig $config, array $attributes): array
     {
-        if (($user = $provider->retrieveByCredentials($attributes))) {
-            return $user;
-        }
-        return null;
-    }
-
-    /**
-     * Determine if the current user is authenticated.
-     *
-     * (a user might make it passed remote auth but not have an attribute required for this app).
-     *
-     * @return bool
-     */
-    public function check()
-    {
-        return $this->user() !== null;
+        return array_filter(
+            array_diff_key($config->attributeMap, $attributes), fn (AuthAttribute $attr) => $attr->required
+        );
     }
 
     /**
@@ -126,7 +133,7 @@ class RemoteAuthGuard implements Guard
      */
     public function validate(array $credentials = [])
     {
-        throw new UnsupportedException('Validation of credentials is not supported');
+        return false;
     }
 
     /**
@@ -135,5 +142,6 @@ class RemoteAuthGuard implements Guard
     public function logout($redirect_to = '/')
     {
         $this->user = null;
+        $this->loggedOut = true;
     }
 }

@@ -20,7 +20,7 @@ class DefaultAttributeMapper
     public function __invoke(AuthConfig $config, array $input)
     {
         $attributes = [];
-        foreach ($config->expectedAttributes as $attribute) {
+        foreach ($config->attributeMap as $attribute) {
             $key = $config->attributePrefix . $attribute->remoteName;
             // if an match exists for exact key or lower or uppercase take that value
             foreach ([$key, strtolower($key), strtoupper($key)] as $inputKey) {
