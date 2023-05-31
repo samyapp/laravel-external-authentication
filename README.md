@@ -5,6 +5,12 @@ Apache with basic authentication, SAML2 SSO via mod_auth_mellon, or a
 custom implementation using Nginx's 
 [http_auth_request](http://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
 
+This package focuses on _authenticating_ users and optionally populating a user model with 
+attributes and values set via the external identity provider.
+
+It includes _optional_ middleware offering _authorization_ based on these
+attributes.
+
 ## Security
 
 If you rely on HTTP headers to determine whether or not a user is authenticated
@@ -53,6 +59,41 @@ secret value by the authentication server.~~
    ```
 3. Edit `config/remote-auth.php`
 
+## Development / Testing Configuration
+
+Configuring an authentication service such as Apache mod mellon
+Instead of configuring an authentication service during development you can enable
+development mode and specify the headers that you want set:
+
+`config/remote-auth.php`
+```php
+<?php
+
+return [
+    // ... other configuration options
+    'attributeMap' => [
+        'username' => 'X-USERNAME',
+        'role' => 'X-USER-ROLE',
+    ],
+ 
+    'credentialAttributes' => [
+        'username',
+    ],
+ 
+    'developmentMode' => true,
+    'developmentAttributes' => [
+        'X-USERNAME' => 'foo',
+        'X-USER-ROLE' => 'admin',
+        // .. any other attributes that would be set by your real auth provider...
+    ]
+]
+```
+
+The attribute names should be the same ones that would be set in your live environment.
+
+In the example above the authenticated user would be one with a username of 'foo',
+and the user model would have the 'role' property set to the value 'admin'.
+
 ## Authenticating Users
 
 RemoteGuard can be configured to work with your app's user models in one of the following ways:
@@ -67,6 +108,27 @@ RemoteGuard can be configured to work with your app's user models in one of the 
 For (1) and (2), RemoteGuard can be configured to sync specific attributes in the app user
 model with those provided by the authentication attributes (for example, SAML attributes passed
 for name, email, phone, etc) if they differ from what was previously stored.
+
+### Successful Authentication Flow
+
+1. Something (e.g. the default Laravel authenticate middleware) triggers the first call to the guard's `user()`
+   method.
+2. The attributes and values set by the authentication provider are mapped to
+   the names expected by your user model (configured in `attributeMap`).
+3. The `retrieveByCredentials()` method of the configured `UserProvider` is called with
+   the attributes defined in `credentialAttributes` together with their values provided
+   in the request.
+4. A matching Authenticatable object (normally a User or TransientUser model) is returned.
+5. If no match is found _and `createMissingUsers` is true, then a new model will be created
+   with the attributes provided.
+6. Any of the properties configured in the `attributeMap` which were provided by
+   the authentication provider are updated on the Authenticatable object to their provided values.
+6. If `syncAttributes` is true, then either the `DefaultUserSyncer` callable is called
+   which calls the Authenticatable's `save()` method (if one exists), or, if the
+   `userSyncer` configuration option has been configured with a callable, it gets called
+   with the parameters `(Authenticatable $user, array $attributes, AuthConfig $config)`.
+
+
 
 ## Authorizing Users
 

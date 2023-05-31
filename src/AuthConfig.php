@@ -10,23 +10,23 @@ use Illuminate\Http\Request;
  */
 class AuthConfig
 {
-	/** @var string - the name for this auth guard */
+    /** @var AuthAttribute[] - the expected attribute definitions keyed by attribute name */
+    public array $attributeMap = [];
+
+    /** @var array|string[] names of attributes to pass to UserProvider::retrieveByCredentials */
+    public array $credentialAttributes = ['email'];
+
+    /** @var string - the name for this auth guard */
 	public string $id = 'remote-auth';
 
 	/** @var bool - should users be created if they are authenticated but don't exist */
 	public bool $createMissingUsers = false;
 
+    /** @var mixed|null -*/
+    protected mixed $userCreator = null;
+
 	/** @var string - optional prefix to prepend when retrieving attributes from headers or environment variables */
 	public string $attributePrefix = '';
-
-    /** @var array|string[] names of attributes to pass to UserProvider::retrieveByCredentials */
-    public array $credentialAttributes = ['email'];
-
-    /** @var AuthAttribute[] - the expected attribute definitions keyed by attribute name */
-	public array $attributeMap = [];
-
-    /** @var array|string[] attribute names to update on the persisted user model */
-    public array $syncAttributes = [];
 
     /**
      * @var array [remoteName => value] attributes to make available as server vars

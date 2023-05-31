@@ -53,7 +53,6 @@ class RemoteAuthGuard implements Guard
     {
         // if we already have a user for *this request* we don't need to redo everything
         if (!$this->loggedOut && is_null($this->user)) {
-            // otherwise, see if our attributes are set in the server, request or env
             if ($userAttributes = $this->config->attributeMapper()($this->config, $this->input)) {
                 // if we have attributes, do they meet our validation criteria?
                 if (!($missingAttributes = $this->getMissingRequiredAttributes($this->config, $userAttributes))) {
@@ -68,7 +67,7 @@ class RemoteAuthGuard implements Guard
                         // assign the userAttributes to the user object
                         $this->setAttributes($this->user, $userAttributes);
                         // should we persist user attributes from remote with internal model?
-                        $this->config->syncAttributes && $this->config->userSyncer()($this->user, $config);
+                        $this->config->syncAttributes && $this->config->userSyncer()($this->user, $userAttributes, $config);
                     }
                 } else {
                     // attributes present but invalid

@@ -14,12 +14,10 @@ class DefaultUserSyncer
      * @param array
      * @return bool
      */
-    public function __invoke(Authenticatable $user, array $attributes)
+    public function __invoke(Authenticatable $user, array $attributes, AuthConfig $config)
     {
         if (method_exists($user, 'save')) {
             $user->save();
-            return true;
         }
-        return false;
     }
 }
