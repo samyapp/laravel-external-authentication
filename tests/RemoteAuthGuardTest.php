@@ -25,7 +25,75 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
         return [
             RemoteAuthServiceProvider::class,
         ];
-    }    
+    }
+
+    /**
+     * Define environment setup.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return void
+     */
+    protected function defineEnvironment($app)
+    {
+        $app['config']->set('auth.guards.web.driver', 'remote-auth');
+        // define a default config, but allow overriding with already configured by @define-env
+        $app['config']->set('remote-auth', array_merge([
+                'createMissingUsers' => false,
+            ],
+                // may have already been partially defined by @define-env
+                $app['config']->get('remote-auth',[])
+            )
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function userLogsAWarningAndReturnsNullIfSomeButNotAllRequiredAttributesPresent()
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @test
+     */
+    public function userLogsAWarningAndReturnsNullIfAttemptToCreateMissingUserFails()
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @test
+     */
+    public function userLogsANoticeAndReturnsNullIfNoAuthAttributesPresent()
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @test
+     */
+    public function userLogsANoticeAndReturnsNullIfRetrieveByCredentialsFailsAndCreateMissingUserIsFalse()
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @test
+     */
+    public function constructorAssignsInputsToProperties()
+    {
+        $config = AuthConfig::fromArray(['attributeMap' => ['something' => 'somethingElse', 'one', '42']]);
+        $provider = new TransientUserProvider(TransientUser::class);
+        $input = ['one' => 'two', 'three' => 'four'];
+        $logger = app(Logger::class);
+        $guard = new RemoteAuthGuard($config, $provider, $input, $logger);
+        $this->assertEquals($config, $guard->config);
+        $this->assertEquals($provider, $guard->getProvider());
+        $this->assertEquals($input, $guard->input);
+        $this->assertEquals($logger, $guard->logger);
+    }
+
     /**
      * @test
      */
@@ -58,32 +126,13 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
     }
 
     /**
-     * Define environment setup.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return void
-     */
-    protected function defineEnvironment($app)
-    {
-        $app['config']->set('auth.guards.web.driver', 'remote-auth');
-        // define a default config, but allow overriding with already configured by @define-env
-        $app['config']->set('remote-auth', array_merge([
-                'createMissingUsers' => false,
-            ],
-                // may have already been partially defined by @define-env
-                $app['config']->get('remote-auth',[])
-            )
-        );
-    }
-
-    /**
      * @test
      */
     public function userReturnsNullIfNoAuthenticationPresent()
     {
         $this->assertNull(app('auth')->guard('web')->user());
     }
-
+    
     /**
      * Configure app to use TransientUserProvider
      */
@@ -117,89 +166,20 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
     /**
      * @test
      */
-    public function userCreatesAUserWhenConfigCreateMissingUsersIsTrue()
+    public function setAttributesSetsPropertiesOnAuthenticatableObject()
     {
-        $this->markTestIncomplete();
-    }
-
-    /**
-     * @test
-     */
-    public function userDoesNotCreateAUserAndAuthFailsWhenAuthAttributesPresentForInvalidUserAndConfigCreateMissingUsersIsFalse()
-    {
-        $this->markTestIncomplete();
-    }
-
-    /**
-     * @test
-     */
-    public function loginSetsTheUserToTheGivenUser()
-    {
-        $guard = new RemoteAuthGuard(AuthConfig::fromArray([]), app('auth')->guard()->getProvider(), [], app(Logger::class));
-        $user = new TransientUser(['foo' => 'bar']);
-        $guard->login($user);
-        $this->assertEquals($user, $guard->user());
-    }
-
-    /**
-     * @test
-     * @define-env configureTransientUserConfig
-     */
-    public function loginWorksAgainAfterALogout()
-    {
-        $guard = app('auth')->guard();
-        $user = $guard->user();
-        $this->assertInstanceOf(TransientUser::class, $user);
-        $guard->logout();
-        $guard->login($user);
-        // ensure that user can be logged in again after being logged out
-        $this->assertEquals($user, $guard->user());
-    }
-
-    /**
-     * @test
-     * @define-env configureTransientUserConfig
-     */
-    public function logoutUnsetsTheUserAndEnsuresUserReturnsNullForRestOfRequest()
-    {
-        $guard = app('auth')->guard();
-        $user = $guard->user();
-        $this->assertInstanceOf(TransientUser::class, $user);
-        $guard->logout();
-        // ensure that user stays logged out for the request
-        $this->assertNull($guard->user());
-    }
-
-    /**
-     * @test
-     */
-    public function constructorAssignsInputsToProperties()
-    {
-        $config = AuthConfig::fromArray(['attributeMap' => ['something' => 'somethingElse', 'one', '42']]);
-        $provider = new TransientUserProvider(TransientUser::class);
-        $input = ['one' => 'two', 'three' => 'four'];
-        $logger = app(Logger::class);
-        $guard = new RemoteAuthGuard($config, $provider, $input, $logger);
-        $this->assertEquals($config, $guard->config);
-        $this->assertEquals($provider, $guard->getProvider());
-        $this->assertEquals($input, $guard->input);
-        $this->assertEquals($logger, $guard->logger);
-    }
-
-    /**
-     * @test
-     */
-    public function syncUserCallsPersistUserCallbackIfItExists()
-    {
-        $this->markTestIncomplete();
-    }
-
-    /**
-     * @test
-     */
-    public function syncUserCallsSaveMethodOnUserIfItExistsAndNoPersistUserCallbackExists()
-    {
-        $this->markTestIncomplete();
+        $guard = new RemoteAuthGuard(
+            AuthConfig::fromArray([]),
+            app('auth')->guard()->getProvider(),
+            [],
+            app(Logger::class)
+        );
+        $user = new TransientUser();
+        $attrs = ['name' => 'foo', 'email' => 'test@example.com', 'username' => 'bar'];
+        $guard->setAttributes($user, $attrs);
+        foreach ($attrs as $name => $value) {
+            $this->assertEquals($value, $user->$name);
+        }
     }
 
     /**
@@ -256,4 +236,57 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($expected, $guard->getMissingRequiredAttributes($config, $input));
     }
 
+    /**
+     * @test
+     */
+    public function validateReturnsFalseEvenIfItsInputContainsCredentialAttributes()
+    {
+        $config = AuthConfig::fromArray([
+            'attributeMap' => ['username'],
+            'credentialAttributes' => ['username'],
+        ]);
+        $credentials = $input = ['username' => 'foo'];
+        $guard = new RemoteAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Logger::class));
+        $this->assertFalse($guard->validate($credentials));
+    }
+
+    /**
+     * @test
+     */
+    public function loginSetsTheUserToTheGivenUser()
+    {
+        $guard = new RemoteAuthGuard(AuthConfig::fromArray([]), app('auth')->guard()->getProvider(), [], app(Logger::class));
+        $user = new TransientUser(['foo' => 'bar']);
+        $guard->login($user);
+        $this->assertEquals($user, $guard->user());
+    }
+
+    /**
+     * @test
+     * @define-env configureTransientUserConfig
+     */
+    public function loginWorksAgainAfterALogout()
+    {
+        $guard = app('auth')->guard();
+        $user = $guard->user();
+        $this->assertInstanceOf(TransientUser::class, $user);
+        $guard->logout();
+        $guard->login($user);
+        // ensure that user can be logged in again after being logged out
+        $this->assertEquals($user, $guard->user());
+    }
+
+    /**
+     * @test
+     * @define-env configureTransientUserConfig
+     */
+    public function logoutUnsetsTheUserAndEnsuresUserReturnsNullForRestOfRequest()
+    {
+        $guard = app('auth')->guard();
+        $user = $guard->user();
+        $this->assertInstanceOf(TransientUser::class, $user);
+        $guard->logout();
+        // ensure that user stays logged out for the request
+        $this->assertNull($guard->user());
+    }
 }

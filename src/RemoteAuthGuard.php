@@ -59,18 +59,24 @@ class RemoteAuthGuard implements Guard
                     // use the attributes we consider credentials to retrieve the user
                     $credentials = array_intersect_key($userAttributes, array_flip($this->config->credentialAttributes));
                     $this->user = $this->getProvider()->retrieveByCredentials($credentials);
-                    // if the user wasn't found, can we create a new one?
-                    if (!$this->user && $this->config->createMissingUsers) {
-                        $this->user = $this->config->userCreator()($userAttributes);
-                        if (!$this->user) {
-                            $this->logger->warning(
-                                sprintf(
-                                    '%s::%s - unable to create new user with attributes',
-                                    __CLASS__,
-                                    __METHOD__
-                                ),
-                                $userAttributes
-                            );
+                    // if the user wasn't found
+                    if (!$this->user) {
+                        // can we create a new one?
+                        if ($this->config->createMissingUsers) {
+                            $this->user = $this->config->userCreator()($userAttributes);
+                            if (!$this->user) {
+                                $this->logger->warning(
+                                    sprintf(
+                                        '%s::%s - unable to create new user with attributes',
+                                        __CLASS__,
+                                        __METHOD__
+                                    ),
+                                    $userAttributes
+                                );
+                            }
+                        } else {
+                            // log that authentication failed
+                            $this->logger->notice(sprintf('%s::%s - authentication failed for credentials', __CLASS__,__METHOD__), $credentials);
                         }
                     }
                     if ($this->user) {
@@ -103,25 +109,8 @@ class RemoteAuthGuard implements Guard
     public function setAttributes(Authenticatable $user, array $userAttributes)
     {
         foreach ($userAttributes as $key => $value) {
-            $this->user->$key = $value;
+            $user->$key = $value;
         }
-    }
-
-    public function syncUser(AuthConfig $config, Authenticatable $user)
-    {
-        $user->save();
-    }
-    
-    /**
-     * Log the given user into the application. This isn't part of the Guard interface, but is referenced
-     * in Laravel documentation.
-     * @param Authenticatable $user
-     * @return void
-     */
-    public function login(Authenticatable $user)
-    {
-        $this->setUser($user);
-        $this->loggedOut = false;
     }
 
     /**
@@ -143,6 +132,18 @@ class RemoteAuthGuard implements Guard
     public function validate(array $credentials = [])
     {
         return false;
+    }
+
+    /**
+     * Log the given user into the application. This isn't part of the Guard interface, but is referenced
+     * in Laravel documentation.
+     * @param Authenticatable $user
+     * @return void
+     */
+    public function login(Authenticatable $user)
+    {
+        $this->setUser($user);
+        $this->loggedOut = false;
     }
 
     /**

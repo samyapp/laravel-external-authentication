@@ -29,7 +29,7 @@ class TransientUserProviderTest extends \PHPUnit\Framework\TestCase
     /**
      * @test
      */
-    public function retrieveByCredentialsPassesItsAttributesParameterToTheUserObject()
+    public function retrieveByCredentialsAssignsItsAttributeParameterKeyValuePairsOnTheUserObject()
     {
         $provider = new TransientUserProvider(TransientUser::class);
         $credentials = ['foo' => 'bar', 'answer' => 42];
