@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
  */
 class AuthConfig
 {
+    /** @var string - optional prefix to prepend when retrieving attributes from headers or environment variables */
+    public string $attributePrefix = '';
+
     /** @var AuthAttribute[] - the expected attribute definitions keyed by attribute name */
     public array $attributeMap = [];
 
@@ -19,14 +22,14 @@ class AuthConfig
     /** @var string - the name for this auth guard */
 	public string $id = 'remote-auth';
 
-	/** @var bool - should users be created if they are authenticated but don't exist */
-	public bool $createMissingUsers = false;
+	/**
+     * @var bool|callable - false to not create missing users, true to use the default creator,
+     * or a callable that will create a new user object with the given attributes.
+     */
+	public mixed $createMissingUsers = false;
 
-    /** @var mixed|null -*/
-    protected mixed $userCreator = null;
-
-	/** @var string - optional prefix to prepend when retrieving attributes from headers or environment variables */
-	public string $attributePrefix = '';
+    /** @var string - the name of the model class to use when creating new users (if using the default user creator) */
+    public string $userModel = '\App\Models\User';
 
     /**
      * @var array [remoteName => value] attributes to make available as server vars
@@ -41,10 +44,10 @@ class AuthConfig
     public string $userProvider = 'users';
 
     /** @var null|callable - optional callable to map remote variables to user attributes */
-    protected mixed $mapAttributes = null;
+    public mixed $mapAttributes = null;
 
     /** @var callabe|null - optional callable to persist changed user attributes  */
-    protected mixed $syncUser = null;
+    public mixed $syncUser = null;
     
 	/**
 	 * Initialise an AuthConfig from a config array
@@ -75,15 +78,27 @@ class AuthConfig
     {
         return is_callable($this->syncUser) ? $this->syncUser : ($this->syncUser = new DefaultUserSyncer());
     }
-    
+
+    /**
+     * Get the callable to create a new user model
+     * @return callable - (array $attributes, AuthConfig $config): void
+     */
+    public function userCreator(): callable
+    {
+        return is_callable($this->createMissingUsers)
+                ? $this->createMissingUsers
+                : ($this->createMissingUsers = new DefaultUserCreator());
+    }
+
     /**
      * @return callable - (AuthConfig $config, array $remoteData) => [ user-attributes]
      */
     public function attributeMapper(): callable
     {
-        return is_callable($this->mapAttributes) ? $this->mapAttributes : ($this->mapAttributes = new DefaultAttributeMapper());
+        return is_callable($this->mapAttributes)
+            ? $this->mapAttributes
+            : ($this->mapAttributes = new DefaultAttributeMapper());
     }
-
 
     /**
 	 * Create an array of AuthAttribute from an array in config format

@@ -117,22 +117,6 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
     /**
      * @test
      */
-    public function userSyncsAttributesWhenConfigSyncAttributesIsTrue()
-    {
-        $this->markTestIncomplete();
-    }
-
-    /**
-     * @test
-     */
-    public function userDoesNotSyncAttributesWhenConfigSyncAttributesIsFalse()
-    {
-        $this->markTestIncomplete();
-    }
-
-    /**
-     * @test
-     */
     public function userCreatesAUserWhenConfigCreateMissingUsersIsTrue()
     {
         $this->markTestIncomplete();

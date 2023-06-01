@@ -61,13 +61,23 @@ class RemoteAuthGuard implements Guard
                     $this->user = $this->getProvider()->retrieveByCredentials($credentials);
                     // if the user wasn't found, can we create a new one?
                     if (!$this->user && $this->config->createMissingUsers) {
-                        $this->user = $this->createUserFromAttributes($userAttributes);
+                        $this->user = $this->config->userCreator()($userAttributes);
+                        if (!$this->user) {
+                            $this->logger->warning(
+                                sprintf(
+                                    '%s::%s - unable to create new user with attributes',
+                                    __CLASS__,
+                                    __METHOD__
+                                ),
+                                $userAttributes
+                            );
+                        }
                     }
                     if ($this->user) {
                         // assign the userAttributes to the user object
                         $this->setAttributes($this->user, $userAttributes);
                         // should we persist user attributes from remote with internal model?
-                        $this->config->syncAttributes && $this->config->userSyncer()($this->user, $userAttributes, $config);
+                        $this->config->syncUser && $this->config->userSyncer()($this->user, $userAttributes, $config);
                     }
                 } else {
                     // attributes present but invalid

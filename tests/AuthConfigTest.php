@@ -2,9 +2,15 @@
 
 namespace Tests;
 
+use App\Models\User;
+use Illuminate\Contracts\Auth\Access\Authorizable;
+use Illuminate\Contracts\Auth\Authenticatable;
 use SamYapp\LaravelRemoteAuth\AuthAttribute;
 use SamYapp\LaravelRemoteAuth\AuthConfig;
 use SamYapp\LaravelRemoteAuth\DefaultAttributeMapper;
+use SamYapp\LaravelRemoteAuth\DefaultUserCreator;
+use SamYapp\LaravelRemoteAuth\DefaultUserSyncer;
+use SamYapp\LaravelRemoteAuth\TransientUser;
 
 /**
  * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
@@ -14,30 +20,23 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
     /**
      * @test
      */
-    public function fromArrayThrowsInvalidArgumentExceptionForUnknownSettings()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        AuthConfig::fromArray(['sam_is_here']);
-    }
-
-    /**
-     * @test
-     */
     public function fromArraySetsObjectProperties()
     {
-        // simple attributes that get set to public properties with the same name
+        // simple attributes with non-default values to check they
+        // get set
         $properties = [
             'id' => 'remote-authy',
             'createMissingUsers' => true,
             'attributePrefix' => 'SAML_',
+            'userModel' => '\Some\Fake\Class',
             'credentialAttributes' => ['username', 'password'],
-            'syncAttributes' => ['username'],
             'developmentMode' => true,
             'developmentAttributes' => ['foo' => 'bar', 'foobar' => true],
+            'userProvider' => 'donuts',
+            'syncUser' => true,
+            'mapAttributes' => fn () => 'test',
         ];
         $allProperties = array_merge($properties, [
-            // this gets set to a protected property with an accessor
-            'mapAttributes' => fn () => 'test',
             // these get converted to AuthAttribute[]
             'attributeMap' => ['username' => 'mail', 'password' => 'pass'],
         ]);
@@ -52,6 +51,10 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertCount(count($allProperties['attributeMap']), $config->attributeMap);
         foreach ($config->attributeMap as $attribute) {
             $this->assertArrayHasKey($attribute->name, $allProperties['attributeMap']);
+        }
+        // ensure we are testing every property
+        foreach ($allProperties as $key => $value) {
+            $this->assertTrue(property_exists($config, $key));
         }
     }
 
@@ -88,7 +91,55 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('hello', $config->attributeMapper()($config, []));
     }
 
-	/**
+    /**
+     * @test
+     */
+    public function userSyncerReturnsDefaultUserSyncerIfSyncUserIsNotCallable()
+    {
+        $config = AuthConfig::fromArray(['syncUser' => true]);
+        $this->assertInstanceOf(DefaultUserSyncer::class, $config->userSyncer());
+    }
+
+    /**
+     * @test
+     */
+    public function userSyncerReturnsConfiguredCallbackIfSyncUserIsConfigured()
+    {
+        $config = AuthConfig::fromArray([
+            'syncUser' => fn () => 'hello',
+        ]);
+        // should not be the default
+        $this->assertNotInstanceOf(DefaultUserSyncer::class, $config->userSyncer());
+        $this->assertIsCallable($config->userSyncer());
+        // assert it is the callable we expect
+        $this->assertEquals('hello', $config->userSyncer()(new TransientUser(), $config));
+    }
+
+    /**
+     * @test
+     */
+    public function userCreatorReturnsDefaultUserCreatorIfCreateMissingUsersIsTrue()
+    {
+        $config = AuthConfig::fromArray(['createMissingUsers' => true]);
+        $this->assertInstanceOf(DefaultUserCreator::class, $config->userCreator());
+    }
+
+    /**
+     * @test
+     */
+    public function userCreatorReturnsConfiguredCallbackIfConfigured()
+    {
+        $config = AuthConfig::fromArray([
+            'createMissingUsers' => fn () => 'hello',
+        ]);
+        // should not be the default
+        $this->assertNotInstanceOf(DefaultUserCreator::class, $config->userCreator());
+        $this->assertIsCallable($config->userCreator());
+        // assert it is the callable we expect
+        $this->assertEquals('hello', $config->userCreator()());
+    }
+
+    /**
 	 * @test
 	 */
     public function fromArrayDoesNotChangePropertiesWhenNotInInput()
