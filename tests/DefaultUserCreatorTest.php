@@ -10,8 +10,13 @@ use Tests\Support\TestUser;
 /**
  * @covers \SamYapp\LaravelRemoteAuth\DefaultUserCreator
  */
-class DefaultUserCreatorTest extends \PHPUnit\Framework\TestCase
+class DefaultUserCreatorTest extends \Orchestra\Testbench\TestCase
 {
+    protected function defineDatabaseMigrations()
+    {
+        $this->loadLaravelMigrations();
+    }
+
     /**
      * @test
      */

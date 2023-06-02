@@ -63,7 +63,7 @@ class RemoteAuthGuard implements Guard
                     if (!$this->user) {
                         // can we create a new one?
                         if ($this->config->createMissingUsers) {
-                            $this->user = $this->config->userCreator()($userAttributes);
+                            $this->user = $this->config->userCreator()($userAttributes, $this->config);
                             if (!$this->user) {
                                 $this->logger->warning(
                                     sprintf(
@@ -83,7 +83,7 @@ class RemoteAuthGuard implements Guard
                         // assign the userAttributes to the user object
                         $this->setAttributes($this->user, $userAttributes);
                         // should we persist user attributes from remote with internal model?
-                        $this->config->syncUser && $this->config->userSyncer()($this->user, $userAttributes, $config);
+                        $this->config->syncUser && $this->config->userSyncer()($this->user, $userAttributes, $this->config);
                     }
                 } else {
                     // attributes present but invalid

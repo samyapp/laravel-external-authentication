@@ -30,7 +30,8 @@ class DefaultAttributeMapper
             }
             // if there wasn't an exact match and the key has any regular expression special characters,
             // see if we can match an array of attributes
-            if (!array_key_exists($attribute->name, $attributes) && preg_match('/[^a-z0-9_-]/i',$key)) {
+            if (!array_key_exists($attribute->name, $attributes)
+                && preg_match('/[^a-z0-9_-]/i',$key)) {
                 $matches = [];
                 foreach ($input as $k => $value) {
                     if (preg_match(sprintf('~^%s$~i', $key),$k)) {
