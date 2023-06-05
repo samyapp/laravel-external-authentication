@@ -2,16 +2,13 @@
 
 namespace SamYapp\LaravelRemoteAuth;
 
-use App\Models\User;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
-use Illuminate\Contracts\Session\Session;
-use Illuminate\Http\Request;
-use Illuminate\Log\Logger;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Contracts\Events\Dispatcher;
+use SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating;
 
 /**
  * Authenticates users based on environment variables or http headers
@@ -25,25 +22,40 @@ class RemoteAuthGuard implements Guard
     /** @var AuthConfig - configuration information */
     public AuthConfig $config;
 
+    /** @var Dispatcher - event dispatcher */
+    public Dispatcher $dispatcher;
+
+    /** @var array - input data from remote request */
+    public array $input;
+
+    /** @var string - the name of this guard in the auth configuration (default is 'web') */
+    public string $guardName;
+
     /** @var bool - true if logout() has been called in the current request, unless login() has since been called */
     protected $loggedOut = false;
 
     /**
      * Create a new authentication guard.
 
-     * @param array $config - array of configuration information
+     * @param AuthConfig $config - Configuration object
+     * @param UserProvider $provider - User Provider to retrieve matching user
+     * @param array $input - The input to process (e.g. Request::server() or similar)
+     * @param Dispatcher $dispatcher - The event dispatcher to dispatch events with
+     * @param string $name - The name of the guard in the config/auth.php
      */
     public function __construct(
         AuthConfig  $config,
         UserProvider $provider,
         array     $input,
-        Logger  $logger,
+        Dispatcher $dispatcher,
+        string $name = 'web',
     )
     {
         $this->setProvider($provider);
         $this->config = $config;
         $this->input = $input;
-        $this->logger = $logger;
+        $this->dispatcher = $dispatcher;
+        $this->guardName = $name;
     }
 
     /**
@@ -58,43 +70,20 @@ class RemoteAuthGuard implements Guard
                 if (!($missingAttributes = $this->getMissingRequiredAttributes($this->config, $userAttributes))) {
                     // use the attributes we consider credentials to retrieve the user
                     $credentials = array_intersect_key($userAttributes, array_flip($this->config->credentialAttributes));
-                    $this->user = $this->getProvider()->retrieveByCredentials($credentials);
-                    // if the user wasn't found
-                    if (!$this->user) {
-                        // can we create a new one?
-                        if ($this->config->createMissingUsers) {
-                            $this->user = $this->config->userCreator()($userAttributes, $this->config);
-                            if (!$this->user) {
-                                $this->logger->warning(
-                                    sprintf(
-                                        '%s::%s - unable to create new user with attributes',
-                                        __CLASS__,
-                                        __METHOD__
-                                    ),
-                                    $userAttributes
-                                );
-                            }
-                        } else {
-                            // log that authentication failed
-                            $this->logger->notice(sprintf('%s::%s - authentication failed for credentials', __CLASS__,__METHOD__), $credentials);
-                        }
-                    }
-                    if ($this->user) {
+                    $user = $this->getProvider()->retrieveByCredentials($credentials);
+                    if ($user) {
                         // assign the userAttributes to the user object
-                        $this->setAttributes($this->user, $userAttributes);
-                        // should we persist user attributes from remote with internal model?
-                        $this->config->syncUser && $this->config->userSyncer()($this->user, $userAttributes, $this->config);
+                        $this->setAttributes($user, $userAttributes);
+                        $this->login($user); // login triggers an event
+                    } else {
+                        $this->dispatcher?->dispatch(new UnknownUserAuthenticating($userAttributes, $this));
                     }
                 } else {
-                    // attributes present but invalid
-                    $this->logger->warning(sprintf('%s::%s - attributes missing', __CLASS__, __METHOD__),$missingAttributes);
+                    // attributes present but missing some required ones
+                    $this->dispatcher?->dispatch(new IncompleteAuthenticationAttributes($missingAttributes, $userAttributes, $this));
                 }
             } else {
                 // no attributes set at all
-                $this->logger->notice(
-                    sprintf('%s::%s - no attributes present', __CLASS__, __METHOD__),
-                    $this->input
-                );
             }
         }
         return $this->user;
@@ -144,6 +133,7 @@ class RemoteAuthGuard implements Guard
     {
         $this->setUser($user);
         $this->loggedOut = false;
+        $this->dispatcher?->dispatch(new Login($this->guardName, $user, false));
     }
 
     /**

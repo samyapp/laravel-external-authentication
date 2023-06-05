@@ -22,15 +22,6 @@ class AuthConfig
     /** @var string - the name for this auth guard */
 	public string $id = 'remote-auth';
 
-	/**
-     * @var bool|callable - false to not create missing users, true to use the default creator,
-     * or a callable that will create a new user object with the given attributes.
-     */
-	public mixed $createMissingUsers = false;
-
-    /** @var string - the name of the model class to use when creating new users (if using the default user creator) */
-    public string $userModel = '\App\Models\User';
-
     /**
      * @var array [remoteName => value] attributes to make available as server vars
      * for use in development environment without a real remote authentication proxy configured
@@ -46,9 +37,6 @@ class AuthConfig
     /** @var null|callable - optional callable to map remote variables to user attributes */
     public mixed $mapAttributes = null;
 
-    /** @var callabe|null - optional callable to persist changed user attributes  */
-    public mixed $syncUser = null;
-    
 	/**
 	 * Initialise an AuthConfig from a config array
 	 * @param array $config - configuration options as returned by config('remote-auth')
@@ -69,26 +57,6 @@ class AuthConfig
 		}
 		return $instance;
 	}
-
-    /**
-     * Get the callable to sync the user attributes with the database / storage
-     * @return callable - (Authenticatble $user, AuthConfig $config): void
-     */
-    public function userSyncer(): callable
-    {
-        return is_callable($this->syncUser) ? $this->syncUser : ($this->syncUser = new DefaultUserSyncer());
-    }
-
-    /**
-     * Get the callable to create a new user model
-     * @return callable - (array $attributes, AuthConfig $config): void
-     */
-    public function userCreator(): callable
-    {
-        return is_callable($this->createMissingUsers)
-                ? $this->createMissingUsers
-                : ($this->createMissingUsers = new DefaultUserCreator());
-    }
 
     /**
      * @return callable - (AuthConfig $config, array $remoteData) => [ user-attributes]

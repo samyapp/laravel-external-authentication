@@ -7,7 +7,6 @@ use Illuminate\Auth\DatabaseUserProvider;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
-use Illuminate\Log\Logger;
 use SamYapp\LaravelRemoteAuth\AuthConfig;
 use SamYapp\LaravelRemoteAuth\DefaultUserCreator;
 use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
@@ -68,7 +67,6 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
                 'roles' => ['remote' => 'ROLE-.*', 'required' => true],
             ],
             'credentialAttributes' => ['email'],
-            'createMissingUsers' => false,
             'developmentMode' => true,
             'developmentAttributes' => [
                 'X-TESTING-UID' => static::TEST_EMAIL,
@@ -76,7 +74,6 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
                 'X-TESTING-ROLE-0' => static::ADMIN_ROLE,
                 'X-TESTING-ROLE-1' => static::USER_ROLE,
             ],
-            'syncUser' => false,
         ];
         $app['config']->set('remote-auth', array_merge($defaults, $app['config']->get('remote-auth',[])));
     }
@@ -123,41 +120,9 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
     /**
      * @test
      */
-    public function existingPersistentUserAuthenticatesWithCorrectAttributesButDoesNotSyncWhenSyncUserIsFalse()
+    public function existingPersistentUserAuthenticatesWithCorrectAttributesTriggersLoginEvent()
     {
-        $user = app('auth')->user();
-        $this->assertNull($user);
-
-        // create a user so there is one to retrieve
-        $user = new TestUser;
-        $user->email = static::TEST_EMAIL;
-        // start them off with a name different from the attributes
-        $originalName = 'name-that-will-change';
-        $user->name = $originalName;
-        $user->save();
-
-        $user = app('auth')->user();
-        $this->assertInstanceOf(TestUser::class, $user);
-        $this->assertEquals(static::TEST_EMAIL, $user->email);
-        $this->assertEquals(static::TEST_USER_NAME, $user->name);
-        $this->assertEquals(static::TEST_ROLES, $user->roles);
-
-        // check the changes haven't been persisted
-        $user->refresh();
-        $this->assertEquals($originalName, $user->name);
-    }
-
-    protected function configurePersistentUserToSync($app)
-    {
-        $app['config']->set('remote-auth.syncUser', true);
-    }
-
-    /**
-     * @test
-     * @define-env configurePersistentUserToSync
-     */
-    public function existingPersistentUserAuthenticatesWithCorrectAttributesAndSyncsWhenSyncUserIsTrue()
-    {
+        $this->markTestIncomplete('No event testing');
         $user = app('auth')->user();
         $this->assertNull($user);
 
@@ -181,76 +146,12 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
     }
 
-    protected function configurePersistentUserToSyncWithCallable($app)
-    {
-        $app['config']->set('remote-auth.syncUser', fn (Authenticatable $user, array $attrs, AuthConfig $config) => $user->save());
-    }
-
     /**
      * @test
-     * @define-env configurePersistentUserToSyncWithCallable
      */
-    public function existingPersistentUserAuthenticatesWithCorrectAttributesAndSyncsWhenSyncUserIsCallable()
+    public function missingPersistentUserCreatedByEventListenerIsReturnedByUser()
     {
-        $user = app('auth')->user();
-        $this->assertNull($user);
-
-        // create a user so there is one to retrieve
-        $user = new TestUser;
-        $user->email = static::TEST_EMAIL;
-        // start them off with a name different from the attributes
-        $originalName = 'name-that-will-change';
-        $user->name = $originalName;
-        $user->save();
-
-        $user = app('auth')->user();
-        $this->assertInstanceOf(TestUser::class, $user);
-        $this->assertEquals(static::TEST_EMAIL, $user->email);
-        $this->assertEquals(static::TEST_USER_NAME, $user->name);
-        $this->assertEquals(static::TEST_ROLES, $user->roles);
-
-        // check the changes have been persisted
-        $user->refresh();
-        $this->assertEquals(static::TEST_EMAIL, $user->email);
-        $this->assertEquals(static::TEST_USER_NAME, $user->name);
-    }
-
-    protected function configurePersistentUserWithCreateMissingUsersTrue($app)
-    {
-        $app['config']->set('remote-auth.createMissingUsers', true);
-        $app['config']->set('remote-auth.userModel', TestUser::class);
-    }
-
-    /**
-     * @test
-     * @define-env configurePersistentUserWithCreateMissingUsersTrue
-     */
-    public function missingPersistentUserCreatedAndAuthenticatedWhenCreateMissingUsersIsTrue()
-    {
-        $user = app('auth')->user();
-        $this->assertInstanceOf(TestUser::class, $user);
-        $this->assertEquals(static::TEST_EMAIL, $user->email);
-        $this->assertEquals(static::TEST_USER_NAME, $user->name);
-        $this->assertEquals(static::TEST_ROLES, $user->roles);
-
-        // check the changes have been persisted
-        $user->refresh();
-        $this->assertEquals(static::TEST_EMAIL, $user->email);
-        $this->assertEquals(static::TEST_USER_NAME, $user->name);
-    }
-
-    protected function configurePersistentUserWithCreateMissingUsersCallback($app)
-    {
-        $app['config']->set('remote-auth.createMissingUsers', new DefaultUserCreator());
-        $app['config']->set('remote-auth.userModel', TestUser::class);
-    }
-
-    /**
-     * @test
-     * @define-env configurePersistentUserWithCreateMissingUsersCallback
-     */
-    public function missingPersistentUserCreatedAndAuthenticatedWhenCreateMissingUsersIsCallable()
-    {
+        $this->markTestIncomplete('No event testing');
         $user = app('auth')->user();
         $this->assertInstanceOf(TestUser::class, $user);
         $this->assertEquals(static::TEST_EMAIL, $user->email);

@@ -26,14 +26,11 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         // get set
         $properties = [
             'id' => 'remote-authy',
-            'createMissingUsers' => true,
             'attributePrefix' => 'SAML_',
-            'userModel' => '\Some\Fake\Class',
             'credentialAttributes' => ['username', 'password'],
             'developmentMode' => true,
             'developmentAttributes' => ['foo' => 'bar', 'foobar' => true],
             'userProvider' => 'donuts',
-            'syncUser' => true,
             'mapAttributes' => fn () => 'test',
         ];
         $allProperties = array_merge($properties, [
@@ -92,61 +89,13 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @test
-     */
-    public function userSyncerReturnsDefaultUserSyncerIfSyncUserIsNotCallable()
-    {
-        $config = AuthConfig::fromArray(['syncUser' => true]);
-        $this->assertInstanceOf(DefaultUserSyncer::class, $config->userSyncer());
-    }
-
-    /**
-     * @test
-     */
-    public function userSyncerReturnsConfiguredCallbackIfSyncUserIsConfigured()
-    {
-        $config = AuthConfig::fromArray([
-            'syncUser' => fn () => 'hello',
-        ]);
-        // should not be the default
-        $this->assertNotInstanceOf(DefaultUserSyncer::class, $config->userSyncer());
-        $this->assertIsCallable($config->userSyncer());
-        // assert it is the callable we expect
-        $this->assertEquals('hello', $config->userSyncer()(new TransientUser(), $config));
-    }
-
-    /**
-     * @test
-     */
-    public function userCreatorReturnsDefaultUserCreatorIfCreateMissingUsersIsTrue()
-    {
-        $config = AuthConfig::fromArray(['createMissingUsers' => true]);
-        $this->assertInstanceOf(DefaultUserCreator::class, $config->userCreator());
-    }
-
-    /**
-     * @test
-     */
-    public function userCreatorReturnsConfiguredCallbackIfConfigured()
-    {
-        $config = AuthConfig::fromArray([
-            'createMissingUsers' => fn () => 'hello',
-        ]);
-        // should not be the default
-        $this->assertNotInstanceOf(DefaultUserCreator::class, $config->userCreator());
-        $this->assertIsCallable($config->userCreator());
-        // assert it is the callable we expect
-        $this->assertEquals('hello', $config->userCreator()());
-    }
-
-    /**
 	 * @test
 	 */
     public function fromArrayDoesNotChangePropertiesWhenNotInInput()
     {
 		$defaultConfig = AuthConfig::fromArray([]);
 		$properties = [
-			'createMissingUsers' => true,
+			'developmentMode' => true,
 		];
 		$modifiedConfig = AuthConfig::fromArray($properties);
 		foreach (['id', 'attributePrefix'] as $unchangedProperty) {

@@ -38,7 +38,6 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('auth.guards.web.driver', 'remote-auth');
         // define a default config, but allow overriding with already configured by @define-env
         $app['config']->set('remote-auth', array_merge([
-                'createMissingUsers' => true,
                 'attributePrefix' => 'X-Test-',
             ],
             // may have already been partially defined by @define-env

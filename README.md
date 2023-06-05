@@ -5,8 +5,8 @@ Apache with basic authentication, SAML2 SSO via mod_auth_mellon, or a
 custom implementation using Nginx's 
 [http_auth_request](http://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
 
-This package focuses on _authenticating_ users and optionally populating a user model with 
-attributes and values set via the external identity provider.
+This package focuses on _authenticating_ users and setting properties or attributes on
+your user model based on those set via the external identity provider.
 
 It includes _optional_ middleware offering _authorization_ based on these
 attributes.
@@ -33,14 +33,6 @@ In addition, if your authentication servers (Apache or Nginx in the examples abo
 are proxying to php on one or more different servers (over a network) you should
 ensure that php only responds to requests from those specific upstream servers to
 avoid other users on the network being able to make requests with forged headers.
-
-### Secure Token
-
-@TODO implement this elsewhere?
-
-~~To add an additional layer of security the RemoteGuard can require that
-an additional header or environment variable gets set with a specific
-secret value by the authentication server.~~
 
 ## Quickstart
 
@@ -96,39 +88,12 @@ and the user model would have the 'role' property set to the value 'admin'.
 
 ## Authenticating Users
 
-RemoteGuard can be configured to work with your app's user models in one of the following ways:
+RemoteAuthGuard can work with your app's user model in one of the following ways:
 
-1. Users exist in your app (the configured user provider can retrieve one that matches the credentials)
+1. Users exist within your app (the configured user provider can retrieve one that matches the credentials)
    and authentication fails if credential attributes do not match an existing user.
-2. Users should exist, but if the attributes do not match an existing user, a new one is created and
-   authentication succeeds.
-3. Users do not exist in your app, but a "Transient" user model should be created to represent
-   the authentication attributes.
-
-For (1) and (2), RemoteGuard can be configured to sync specific attributes in the app user
-model with those provided by the authentication attributes (for example, SAML attributes passed
-for name, email, phone, etc) if they differ from what was previously stored.
-
-### Successful Authentication Flow
-
-1. Something (e.g. the default Laravel authenticate middleware) triggers the first call to the guard's `user()`
-   method.
-2. The attributes and values set by the authentication provider are mapped to
-   the names expected by your user model (configured in `attributeMap`).
-3. The `retrieveByCredentials()` method of the configured `UserProvider` is called with
-   the attributes defined in `credentialAttributes` together with their values provided
-   in the request.
-4. A matching Authenticatable object (normally a User or TransientUser model) is returned.
-5. If no match is found _and `createMissingUsers` is true, then a new model will be created
-   with the attributes provided.
-6. Any of the properties configured in the `attributeMap` which were provided by
-   the authentication provider are updated on the Authenticatable object to their provided values.
-6. If `syncAttributes` is true, then either the `DefaultUserSyncer` callable is called
-   which calls the Authenticatable's `save()` method (if one exists), or, if the
-   `userSyncer` configuration option has been configured with a callable, it gets called
-   with the parameters `(Authenticatable $user, array $attributes, AuthConfig $config)`.
-
-
+2. Users do not exist in your app, but a "Transient" user model should be created to represent
+   the authenticated user for each request.
 
 ## Authorizing Users
 
@@ -139,49 +104,94 @@ or values of the attributes set on the user model.
 
 ## Configuration
 
+### Working with your existing users and User model
 
+RemoteAuthGuard uses the user provider and user model configured in your 
+`config/auth.php` for the guard in the same way as the default Laravel `SessionGuard`,
+calling `UserProvider::retrieveByCredentials()` with the values
+(for example, `email`) from the server named in
+the `config/remote-auth.php` `credentialAttributes` setting.
 
-### Persistent Users
+#### Creating "missing" users
 
-RemoteGuard works with whatever Laravel user provider and user model are configured in your 
-`config/auth.php` for the guard.
+If you prefer to create users in your database "on-demand" when the guard authenticates them
+for the first time, you can listen for the `UnknownUserAuthenticating` event which is dispatched
+when all expected user attributes are present in the request but the user provider cannot
+find an existing user.
 
-With the default configuration, the configured user provider _must_ be able to find a matching
-user based on the credentials mapped by your configuration.
+You can create and persist the user in your listener similar to the example below 
+(you might want to add some validation though):
 
-#### Creating non-existant users
+_app/Providers/EventServiceProvider.php_
+```php
+    // class EventServiceProvider
+    /**
+     * Register any events for your application.
+     */
+    public function boot(): void
+    {
+        Event::listen(function (UnknownUserAuthenticating $event) {
+            $user = new \App\Models\User();
+            foreach ($event->attributes as $name => $value) {
+                $user->$name = $value;
+            }
+            $user->save();
+            $event->guard->login($user);
+        });
+    }
 
-Alternatively if you want to allow any user where the attributes have been set by the remote authenticator
-@todo
+```
+
+Alternatively, you might want to log whenever a user is authenticated remotely but does not
+have a matching user account in your app.
 
 #### Updating User Attributes
 
-Attributes that should be updated in your user model should be listed in the `syncAttributes` 
-configuration setting.
+If you need to sync your apps' users table with the attribute values passed in from your external
+authentication provider (for example, name, roles, or some other attributes) you can listen for
+the `Illuminate\Auth\Events\Login` event which is fired when the guard's `login($user)` method
+has been called.
 
-These _must_ match the names of one or more of the keys in the `expectedAttributes` option.
+This event will have the authenticated `User` model in its `$user` property
+which will have the values of the properties set by the remote authentication source.
 
-_e.g. config/remote-auth.php_
+For a standard Laravel User model, you can just call `$event->user->save()` to sync
+it with your app database, e.g:
+
+_app/Providers/EventServiceProvider.php_
+```php
+    // class EventServiceProvider
+    /**
+     * Register any events for your application.
+     */
+    public function boot(): void
+    {
+        Event::listen(function (Illuminate\Auth\Events\Login $event) {
+            $event->user->save();
+        });
+    }
 
 ```
-@todo
-```
 
-#### 
+### Working with "Transient" users
 
-### Non-persistent User Model
+RemoteAuthGuard can be used for applications which do not have a separate users
+database table, relying entirely on the remote authentication source to set the
+attributes that define a user.
 
-If you do not require your authenticated users' data to be persisted (and retrieved) from
-a database table or other storage, then you can use the 
-[TransientUserProvider](src/TransientUserProvider.php) to create a
-[TransientUser object](src/TransientUser.php) from the authenticated attributes.
+You can use the provided [TransientUserProvider](src/TransientUserProvider.php) which is
+automatically registered by the package service provider, and which accepts the attributes
+passed in from the remote authentication source and will return a user object with the values
+of each attribute assigned to it without attempting to retrieve an existing user from a database.
 
-[TransientUser](src/TransientUser.php) implements Laravel's AuthenticatableContract and AuthorizableContract
-and simply takes a an array of attribute => value pairs in its constructor.
+The Transient user provider can be configured to use any class as the created user object.
 
-The `TransientUserProvider` user provider is registered by this package's
-`RemoteAuthServiceProvider` class. To configure it as the provider for
-this guard, edit your auth config:
+The package includes a very simple [TransientUser object](src/TransientUser.php) which
+just allows setting and getting attribute values but will work with any class which allows
+setting and getting attributes on.
+
+To configure the `TransientUserProvider` as the user provider for this guard,
+edit your auth configuration:
 
 _config/auth.php_
 ```
@@ -207,20 +217,17 @@ _config/auth.php_
 
 ```
 
-#### Adding additional functionality to TransientUser
+To use your own class (i.e. `App\Models\User`) for the authenticated user objects, just
+set the `providers.transient.model` parameter as above, e.g.:
 
-You can configure the TransientUserProvider to create objects of your own subclass 
-by setting the value for the `model` attribute in the provider configuration to the name
-of your subclass, eg.
-
-_config/auth.php_
-```
-  'providers' => [
+```php
+   'providers' => [
       'transient' => [
          'driver' => 'transient-user',
-         'model' => \App\Models\MyTransientUser::class,
+         'model'  => \App\Models\User::class,
       ],
-      
+
       // ... other provider configuration
-  ],
+   ],
+
 ```
