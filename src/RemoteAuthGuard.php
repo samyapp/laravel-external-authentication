@@ -2,6 +2,7 @@
 
 namespace SamYapp\LaravelRemoteAuth;
 
+use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\GuardHelpers;
@@ -74,9 +75,8 @@ class RemoteAuthGuard implements Guard
                     $credentials = array_intersect_key($userAttributes, array_flip($this->config->credentialAttributes));
                     $user = $this->getProvider()->retrieveByCredentials($credentials);
                     if ($user) {
-                        // assign the userAttributes to the user object
                         $this->setAttributes($user, $userAttributes);
-                        $this->login($user); // login triggers an event
+                        $this->setUser($user);
                     } else {
                         $this->dispatcher?->dispatch(new UnknownUserAuthenticating($userAttributes, $this));
                     }
@@ -84,8 +84,6 @@ class RemoteAuthGuard implements Guard
                     // attributes present but missing some required ones
                     $this->dispatcher?->dispatch(new IncompleteAuthenticationAttributes($missingAttributes, $userAttributes, $this));
                 }
-            } else {
-                // no attributes set at all
             }
         }
         return $this->user;
@@ -133,19 +131,30 @@ class RemoteAuthGuard implements Guard
      */
     public function login(Authenticatable $user)
     {
-        $this->setUser($user);
-        $this->loggedOut = false;
         $this->dispatcher?->dispatch(new Login($this->guardName, $user, false));
+        $this->setUser($user);
+    }
+
+    /**
+     * Set the authenticated user to $user
+     * @param Authenticatable $user
+     * @return $this|void
+     */
+    public function setUser(Authenticatable $user)
+    {
+        $this->user = $user;
+        $this->loggedOut = false;
+        $this->dispatcher?->dispatch(new Authenticated($this->guardName, $user));
+        return $this;
     }
 
     /**
      * @inheritDoc
      */
-    public function logout($redirect_to = '/')
+    public function logout()
     {
-        $user = $this->user;
+        $this->dispatcher?->dispatch(new Logout($this->guardName, $this->user));
         $this->user = null;
         $this->loggedOut = true;
-        $this->dispatcher?->dispatch(new Logout($this->guardName, $user));
     }
 }

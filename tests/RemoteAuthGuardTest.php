@@ -4,9 +4,11 @@ namespace Tests;
 
 use App\Models\User;
 use Illuminate\Auth\DatabaseUserProvider;
+use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use SamYapp\LaravelRemoteAuth\AuthConfig;
 use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
 use SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider;
@@ -227,6 +229,21 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
         $user = new TransientUser(['foo' => 'bar']);
         $guard->login($user);
         $this->assertEquals($user, $guard->user());
+    }
+
+    /**
+     * @test
+     */
+    public function setUserSetsTheUserToTheGivenUserAndDispatchesAuthenticatedEvent()
+    {
+        Event::fake();
+        $guard = new RemoteAuthGuard(AuthConfig::fromArray([]), app('auth')->guard()->getProvider(), [], app(Dispatcher::class));
+        $user = new TransientUser(['foo' => 'bar']);
+        $guard->setUser($user);
+        $this->assertEquals($user, $guard->user());
+        Event::assertDispatched(Authenticated::class, function (Authenticated $event) use($user, $guard) {
+           return $event->guard == $guard->guardName && $user = $event->user;
+        });
     }
 
     /**

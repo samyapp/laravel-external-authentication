@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
@@ -88,7 +89,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
      * @test
      * @define-env configureTransientUserProviderWithDefaultUserModel
      */
-    public function transientUserAuthenticatesWithCorrectAttributesAndDispatchesLoginEvent()
+    public function transientUserAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
         $user = app('auth')->user();
         $guard = app('auth')->guard();
@@ -98,11 +99,12 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
         $this->assertEquals(static::TEST_ROLES, $user->roles);
 
-        Event::assertDispatched(function (Login $event) use ($guard, $user) {
+        Event::assertDispatched(function (Authenticated $event) use ($guard, $user) {
             return ($guard->guardName === $event->guard)
                 && ($user === $event->user);
         },1);
         Event::assertNotDispatched(IncompleteAuthenticationAttributes::class);
+        Event::assertNotDispatched(Login::class);
         Event::assertNotDispatched(UnknownUserAuthenticating::class);
     }
 
@@ -118,7 +120,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
      * @test
      * @define-env configureTransientUserProviderWithTransientUserModel
      */
-    public function transientUserWithTransientUserModelAuthenticatesWithCorrectAttributesAndDispatchesLoginEvent()
+    public function transientUserWithTransientUserModelAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
         $user = app('auth')->user();
         $guard = app('auth')->guard();
@@ -127,12 +129,13 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
         $this->assertEquals(static::TEST_ROLES, $user->roles);
 
-        Event::assertDispatched(function (Login $event) use ($guard, $user) {
+        Event::assertDispatched(function (Authenticated $event) use ($guard, $user) {
             return ($guard->guardName === $event->guard)
                 && ($user === $event->user);
         },1);
         Event::assertNotDispatched(IncompleteAuthenticationAttributes::class);
         Event::assertNotDispatched(UnknownUserAuthenticating::class);
+        Event::assertNotDispatched(Login::class);
     }
 
     protected function configureEventFaking()
@@ -144,7 +147,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
      * @test
      * @define-env configureEventFaking
      */
-    public function existingUserAuthenticatesWithCorrectAttributesAndDispatchesLoginEvent()
+    public function existingUserAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
         // create a user so there is one to retrieve
         $user = new TestUser;
@@ -161,12 +164,13 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
         $this->assertEquals(static::TEST_ROLES, $user->roles);
 
-        Event::assertDispatched(function (Login $event) use ($guard, $user) {
+        Event::assertDispatched(function (Authenticated $event) use ($guard, $user) {
             return ($guard->guardName === $event->guard)
                 && ($user === $event->user);
         },1);
         Event::assertNotDispatched(IncompleteAuthenticationAttributes::class);
         Event::assertNotDispatched(UnknownUserAuthenticating::class);
+        Event::assertNotDispatched(Login::class);
     }
 
     /**
@@ -221,6 +225,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         Event::assertDispatched(IncompleteAuthenticationAttributes::class);
         Event::assertNotDispatched(UnknownUserAuthenticating::class);
         Event::assertNotDispatched(Login::class);
+        Event::assertNotDispatched(Authenticated::class);
     }
 
     protected function configureTransientUserProviderAndMissingRequiredAttributes()
@@ -247,6 +252,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         Event::assertDispatched(IncompleteAuthenticationAttributes::class);
         Event::assertNotDispatched(UnknownUserAuthenticating::class);
         Event::assertNotDispatched(Login::class);
+        Event::assertNotDispatched(Authenticated::class);
     }
 
     /**
