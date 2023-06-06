@@ -58,6 +58,33 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
     /**
      * @test
      */
+    public function defaultConfigSetsDevelopmentModeFalse()
+    {
+        $config = AuthConfig::fromArray([]);
+        $this->assertFalse($config->developmentMode);
+    }
+
+    /**
+     * @test
+     */
+    public function defaultConfigSetsUserProviderNameToUsers()
+    {
+        $config = AuthConfig::fromArray([]);
+        $this->assertEquals('users', $config->userProvider);
+    }
+
+    /**
+     * @test
+     */
+    public function defaultConfigSetsAttributePrefixToEmptyString()
+    {
+        $config = AuthConfig::fromArray([]);
+        $this->assertEquals( '', $config->attributePrefix);
+    }
+
+    /**
+     * @test
+     */
     public function fromArrayThrowsInvalidArgumentExceptionForUnknownConfigurationSettings()
     {
         $this->expectException(\InvalidArgumentException::class);

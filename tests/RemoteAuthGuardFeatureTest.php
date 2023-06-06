@@ -4,11 +4,15 @@ namespace Tests;
 
 use App\Models\User;
 use Illuminate\Auth\DatabaseUserProvider;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use SamYapp\LaravelRemoteAuth\AuthConfig;
 use SamYapp\LaravelRemoteAuth\DefaultUserCreator;
+use SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes;
+use SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating;
 use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
 use SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider;
 use SamYapp\LaravelRemoteAuth\TransientUser;
@@ -82,19 +86,29 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
     {
         // config/auth.php
         $app['config']->set('auth.providers.users.driver', 'transient');
+        Event::fake();
     }
 
     /**
      * @test
      * @define-env configureTransientUserProviderWithDefaultUserModel
      */
-    public function transientUserAuthenticatesWithCorrectAttributes()
+    public function transientUserAuthenticatesWithCorrectAttributesAndDispatchesLoginEvent()
     {
         $user = app('auth')->user();
+        $guard = app('auth')->guard();
+        $this->assertInstanceOf(RemoteAuthGuard::class, $guard);
         $this->assertInstanceOf(TestUser::class, $user);
         $this->assertEquals(static::TEST_EMAIL, $user->email);
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
         $this->assertEquals(static::TEST_ROLES, $user->roles);
+
+        Event::assertDispatched(function (Login $event) use ($guard, $user) {
+            return ($guard->guardName === $event->guard)
+                && ($user === $event->user);
+        },1);
+        Event::assertNotDispatched(IncompleteAuthenticationAttributes::class);
+        Event::assertNotDispatched(UnknownUserAuthenticating::class);
     }
 
     public function configureTransientUserProviderWithTransientUserModel($app)
@@ -102,30 +116,41 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         // config/auth.php
         $app['config']->set('auth.providers.users.driver', 'transient');
         $this->userModel = TransientUser::class; // will be used in defineEnvironment
+        Event::fake();
     }
 
     /**
      * @test
      * @define-env configureTransientUserProviderWithTransientUserModel
      */
-    public function transientUserWithTransientUserModelAuthenticatesWithCorrectAttributes()
+    public function transientUserWithTransientUserModelAuthenticatesWithCorrectAttributesAndDispatchesLoginEvent()
     {
         $user = app('auth')->user();
+        $guard = app('auth')->guard();
         $this->assertInstanceOf(TransientUser::class, $user);
         $this->assertEquals(static::TEST_EMAIL, $user->email);
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
         $this->assertEquals(static::TEST_ROLES, $user->roles);
+
+        Event::assertDispatched(function (Login $event) use ($guard, $user) {
+            return ($guard->guardName === $event->guard)
+                && ($user === $event->user);
+        },1);
+        Event::assertNotDispatched(IncompleteAuthenticationAttributes::class);
+        Event::assertNotDispatched(UnknownUserAuthenticating::class);
+    }
+
+    protected function configureEventFaking()
+    {
+        Event::fake();
     }
 
     /**
      * @test
+     * @define-env configureEventFaking
      */
-    public function existingPersistentUserAuthenticatesWithCorrectAttributesTriggersLoginEvent()
+    public function existingUserAuthenticatesWithCorrectAttributesAndDispatchesLoginEvent()
     {
-        $this->markTestIncomplete('No event testing');
-        $user = app('auth')->user();
-        $this->assertNull($user);
-
         // create a user so there is one to retrieve
         $user = new TestUser;
         $user->email = static::TEST_EMAIL;
@@ -135,32 +160,41 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $user->save();
 
         $user = app('auth')->user();
+        $guard = app('auth')->guard();
         $this->assertInstanceOf(TestUser::class, $user);
         $this->assertEquals(static::TEST_EMAIL, $user->email);
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
         $this->assertEquals(static::TEST_ROLES, $user->roles);
 
-        // check the changes have been persisted
-        $user->refresh();
-        $this->assertEquals(static::TEST_EMAIL, $user->email);
-        $this->assertEquals(static::TEST_USER_NAME, $user->name);
+        Event::assertDispatched(function (Login $event) use ($guard, $user) {
+            return ($guard->guardName === $event->guard)
+                && ($user === $event->user);
+        },1);
+        Event::assertNotDispatched(IncompleteAuthenticationAttributes::class);
+        Event::assertNotDispatched(UnknownUserAuthenticating::class);
     }
 
     /**
      * @test
      */
-    public function missingPersistentUserCreatedByEventListenerIsReturnedByUser()
+    public function missingUserCreatedByEventListenerIsReturnedByUser()
     {
-        $this->markTestIncomplete('No event testing');
+        // user should not exist
+        $this->assertNull(app('auth')->user());
+        // add an event listener for the event that creates and logs in the user
+        Event::listen(UnknownUserAuthenticating::class, function (UnknownUserAuthenticating $event) {
+           $user = new TestUser();
+           $user->email = $event->attributes['email'];
+           $user->name = $event->attributes['name'];
+           $user->roles = $event->attributes['roles'];
+           $user->save();
+           $event->guard->login($user);
+        });
+        // redo authentication
         $user = app('auth')->user();
         $this->assertInstanceOf(TestUser::class, $user);
         $this->assertEquals(static::TEST_EMAIL, $user->email);
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
         $this->assertEquals(static::TEST_ROLES, $user->roles);
-
-        // check the changes have been persisted
-        $user->refresh();
-        $this->assertEquals(static::TEST_EMAIL, $user->email);
-        $this->assertEquals(static::TEST_USER_NAME, $user->name);
     }
 }

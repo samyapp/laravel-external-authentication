@@ -18,8 +18,8 @@ class UnknownUserAuthenticating
 
     public function __construct(
         /** @var - User attributes mapped from the request input (e.g. username, email, name, etc) by the guard */
-        array $attributes,
+        public array $attributes,
         /** @var - The RemoteAuthGuard instance (whose $input and $config properties can be accessed if required) */
-        RemoteAuthGuard $guard,
+        public RemoteAuthGuard $guard,
     ){}
 }
