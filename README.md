@@ -97,10 +97,7 @@ RemoteAuthGuard can work with your app's user model in one of the following ways
 
 ## Authorizing Users
 
-You should use the standard Laravel methods to authorize users for specific routes or actions.
-
-@todo RemoteGuard also includes optional middleware to authorize users based on the presence, absence
-or values of the attributes set on the user model.
+Use the standard Laravel methods to authorize users for specific routes or actions.
 
 ## Configuration
 

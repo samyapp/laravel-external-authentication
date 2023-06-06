@@ -2,9 +2,6 @@
 
 namespace SamYapp\LaravelRemoteAuth;
 
-use App\Http\Middleware\Authenticate;
-use Illuminate\Http\Request;
-
 /**
  * Simple data object for configuration options
  */

@@ -5,10 +5,8 @@ namespace SamYapp\LaravelRemoteAuth;
 use App\Services\Auth\RemoteGuard;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Session\Session;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
-use Illuminate\Log\Logger;
 use Illuminate\Support\ServiceProvider;
 
 class RemoteAuthServiceProvider extends ServiceProvider
