@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
 use SamYapp\LaravelRemoteAuth\DefaultUserCreator;
 use SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes;
@@ -246,5 +247,34 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         Event::assertDispatched(IncompleteAuthenticationAttributes::class);
         Event::assertNotDispatched(UnknownUserAuthenticating::class);
         Event::assertNotDispatched(Login::class);
+    }
+
+    /**
+     * @test
+     * @define-env configureEventFaking
+     */
+    public function loggingOutAnExistingAuthenticatedUserDispatchesLogoutEventAndUserThenReturnsNull()
+    {
+        // create a user so there is one to retrieve
+        $user = new TestUser;
+        $user->email = static::TEST_EMAIL;
+        // start them off with a name different from the attributes
+        $originalName = 'name-that-will-change';
+        $user->name = $originalName;
+        $user->save();
+
+        $user = app('auth')->user();
+        $guard = app('auth')->guard();
+        $this->assertInstanceOf(TestUser::class, $user);
+
+        $guard->logout();
+
+        Event::assertDispatched(function (Logout $event) use ($guard, $user) {
+            return ($guard->guardName === $event->guard)
+                && ($user === $event->user);
+        },1);
+        Event::assertNotDispatched(IncompleteAuthenticationAttributes::class);
+        Event::assertNotDispatched(UnknownUserAuthenticating::class);
+        $this->assertNull(app('auth')->user());
     }
 }

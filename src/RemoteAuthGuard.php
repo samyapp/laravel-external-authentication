@@ -3,6 +3,7 @@
 namespace SamYapp\LaravelRemoteAuth;
 
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
@@ -142,7 +143,9 @@ class RemoteAuthGuard implements Guard
      */
     public function logout($redirect_to = '/')
     {
+        $user = $this->user;
         $this->user = null;
         $this->loggedOut = true;
+        $this->dispatcher?->dispatch(new Logout($this->guardName, $user));
     }
 }
