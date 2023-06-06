@@ -2,14 +2,8 @@
 
 namespace Tests;
 
-use App\Models\User;
-use Illuminate\Auth\DatabaseUserProvider;
 use Illuminate\Auth\Events\Login;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
-use SamYapp\LaravelRemoteAuth\AuthConfig;
 use SamYapp\LaravelRemoteAuth\DefaultUserCreator;
 use SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes;
 use SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating;
@@ -196,5 +190,61 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals(static::TEST_EMAIL, $user->email);
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
         $this->assertEquals(static::TEST_ROLES, $user->roles);
+    }
+
+    protected function configureMissingRequiredAttributes()
+    {
+        Event::fake();
+        // don't set the name which is required
+        app('config')->set('remote-auth.developmentAttributes',[
+            'X-TESTING-UID' => static::TEST_EMAIL,
+            'X-TESTING-ROLE-0' => static::ADMIN_ROLE,
+            'X-TESTING-ROLE-1' => static::USER_ROLE,
+        ]);
+    }
+
+    /**
+     * @test
+     * @define-env configureMissingRequiredAttributes
+     */
+    public function existingUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
+    {
+        // create a user so there is one to retrieve
+        $user = new TestUser;
+        $user->email = static::TEST_EMAIL;
+        // start them off with a name different from the attributes
+        $originalName = 'name-that-will-change';
+        $user->name = $originalName;
+        $user->save();
+        $this->assertNull(app('auth')->user());
+        Event::assertDispatched(IncompleteAuthenticationAttributes::class);
+        Event::assertNotDispatched(UnknownUserAuthenticating::class);
+        Event::assertNotDispatched(Login::class);
+    }
+
+    protected function configureTransientUserProviderAndMissingRequiredAttributes()
+    {
+        Event::fake();
+        // don't set the name which is required
+        app('config')->set('remote-auth.developmentAttributes',[
+            'X-TESTING-UID' => static::TEST_EMAIL,
+            'X-TESTING-ROLE-0' => static::ADMIN_ROLE,
+            'X-TESTING-ROLE-1' => static::USER_ROLE,
+        ]);
+        app('config')->set('auth.providers.users.driver', 'transient');
+    }
+
+    /**
+     * @test
+     * @define-env configureTransientUserProviderAndMissingRequiredAttributes
+     */
+    public function transientUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
+    {
+        // double check we've configured transientuserprovider...
+        $this->assertInstanceOf(TransientUserProvider::class, app('auth')->guard()->getProvider());
+        $this->assertNull(app('auth')->user());
+        Event::assertDispatched(IncompleteAuthenticationAttributes::class);
+        Event::assertNotDispatched(UnknownUserAuthenticating::class);
+        Event::assertNotDispatched(Login::class);
     }
 }

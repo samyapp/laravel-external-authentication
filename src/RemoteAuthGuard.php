@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Events\Dispatcher;
+use SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes;
 use SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating;
 
 /**
