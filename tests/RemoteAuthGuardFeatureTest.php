@@ -82,7 +82,6 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
     {
         // config/auth.php
         $app['config']->set('auth.providers.users.driver', 'transient');
-        Event::fake();
     }
 
     /**
@@ -91,6 +90,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
      */
     public function transientUserAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
+        Event::fake();
         $user = app('auth')->user();
         $guard = app('auth')->guard();
         $this->assertInstanceOf(RemoteAuthGuard::class, $guard);
@@ -113,7 +113,6 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         // config/auth.php
         $app['config']->set('auth.providers.users.driver', 'transient');
         $this->userModel = TransientUser::class; // will be used in defineEnvironment
-        Event::fake();
     }
 
     /**
@@ -122,6 +121,8 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
      */
     public function transientUserWithTransientUserModelAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
+        Event::fake();
+
         $user = app('auth')->user();
         $guard = app('auth')->guard();
         $this->assertInstanceOf(TransientUser::class, $user);
@@ -138,17 +139,12 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         Event::assertNotDispatched(Login::class);
     }
 
-    protected function configureEventFaking()
-    {
-        Event::fake();
-    }
-
     /**
      * @test
-     * @define-env configureEventFaking
      */
     public function existingUserAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
+        Event::fake();
         // create a user so there is one to retrieve
         $user = new TestUser;
         $user->email = static::TEST_EMAIL;
@@ -199,7 +195,6 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
 
     protected function configureMissingRequiredAttributes()
     {
-        Event::fake();
         // don't set the name which is required
         app('config')->set('remote-auth.developmentAttributes',[
             'X-TESTING-UID' => static::TEST_EMAIL,
@@ -214,6 +209,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
      */
     public function existingUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
     {
+        Event::fake();
         // create a user so there is one to retrieve
         $user = new TestUser;
         $user->email = static::TEST_EMAIL;
@@ -230,7 +226,6 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
 
     protected function configureTransientUserProviderAndMissingRequiredAttributes()
     {
-        Event::fake();
         // don't set the name which is required
         app('config')->set('remote-auth.developmentAttributes',[
             'X-TESTING-UID' => static::TEST_EMAIL,
@@ -246,6 +241,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
      */
     public function transientUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
     {
+        Event::fake();
         // double check we've configured transientuserprovider...
         $this->assertInstanceOf(TransientUserProvider::class, app('auth')->guard()->getProvider());
         $this->assertNull(app('auth')->user());
@@ -257,10 +253,10 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
 
     /**
      * @test
-     * @define-env configureEventFaking
      */
     public function loggingOutAnExistingAuthenticatedUserDispatchesLogoutEventAndUserThenReturnsNull()
     {
+        Event::fake();
         // create a user so there is one to retrieve
         $user = new TestUser;
         $user->email = static::TEST_EMAIL;
