@@ -1,4 +1,5 @@
 # Laravel Remote Auth
+
 Laravel authentication based on HTTP request headers
 or environment variables set by an authenticating reverse proxy server such as
 Apache with basic authentication, SAML2 SSO via mod_auth_mellon, or a
@@ -8,8 +9,7 @@ custom implementation using Nginx's
 This package focuses on _authenticating_ users and setting properties or attributes on
 your user model based on those set via the external identity provider.
 
-It includes _optional_ middleware offering _authorization_ based on these
-attributes.
+![Build Status](https://github.com/samyapp/laravel-remote-auth/actions/workflows/php.yml/badge.svg)
 
 ## Security
 
