@@ -9,6 +9,7 @@ use SamYapp\LaravelRemoteAuth\TransientUserProvider;
 
 /**
  * @covers \SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider
+ * @covers \SamYapp\LaravelRemoteAuth\AuthConfig::fromArray
  */
 class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
 {

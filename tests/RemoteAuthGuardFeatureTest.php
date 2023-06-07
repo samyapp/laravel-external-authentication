@@ -17,6 +17,7 @@ use Tests\Support\TestUser;
 
 /**
  * @covers \SamYapp\LaravelRemoteAuth\RemoteAuthGuard
+ * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
  */
 class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
 {

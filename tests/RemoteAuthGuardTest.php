@@ -17,6 +17,7 @@ use SamYapp\LaravelRemoteAuth\TransientUserProvider;
 
 /**
  * @covers \SamYapp\LaravelRemoteAuth\RemoteAuthGuard
+ * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
  */
 class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
 {

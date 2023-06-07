@@ -14,6 +14,7 @@ use SamYapp\LaravelRemoteAuth\TransientUser;
 
 /**
  * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
+ * @covers \SamYapp\LaravelRemoteAuth\AuthAttribute
  */
 class AuthConfigTest extends \PHPUnit\Framework\TestCase
 {

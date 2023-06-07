@@ -8,6 +8,7 @@ use SamYapp\LaravelRemoteAuth\TransientUserProvider;
 
 /**
  * @covers SamYapp\LaravelRemoteAuth\TransientUserProvider
+ * @covers SamYapp\LaravelRemoteAuth\TransientUser
  */
 class TransientUserProviderTest extends \PHPUnit\Framework\TestCase
 {

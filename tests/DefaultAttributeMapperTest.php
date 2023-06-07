@@ -7,6 +7,7 @@ use SamYapp\LaravelRemoteAuth\DefaultAttributeMapper;
 
 /**
  * @covers \SamYapp\LaravelRemoteAuth\DefaultAttributeMapper
+ * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
  */
 class DefaultAttributeMapperTest extends \PHPUnit\Framework\TestCase
 {
