@@ -11,7 +11,7 @@ use Illuminate\Contracts\Auth\UserProvider;
  */
 class TransientUserProvider implements UserProvider
 {
-    public function __construct(/** @var the class to create user objects in */protected string $modelClass) {}
+    public function __construct(/** @var the class to create user objects in */public string $modelClass) {}
 
     public function retrieveByCredentials(array $credentials)
     {
@@ -22,20 +22,24 @@ class TransientUserProvider implements UserProvider
         return $user;
     }
 
+    /** @codeCoverageIgnore */
     public function retrieveById($identifier)
     {
         return null;
     }
 
+    /** @codeCoverageIgnore */
     public function retrieveByToken($identifier, $token)
     {
         return null;
     }
 
+    /** @codeCoverageIgnore */
     public function updateRememberToken(Authenticatable $user, $token)
     {
     }
 
+    /** @codeCoverageIgnore */
     public function validateCredentials(Authenticatable $user, array $credentials)
     {
         return false;

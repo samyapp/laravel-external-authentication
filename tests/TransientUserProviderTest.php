@@ -14,6 +14,16 @@ class TransientUserProviderTest extends \PHPUnit\Framework\TestCase
     /**
      * @test
      */
+    public function constructorSetsTheModelPropertyFromItsParameter()
+    {
+        $model = TransientUser::class;
+        $provider = new TransientUserProvider($model);
+        $this->assertEquals($model, $provider->modelClass);
+    }
+
+    /**
+     * @test
+     */
     public function retrieveByCredentialsCreatesAnInstanceOfTheClassNamePassedToTheConstructor()
     {
         foreach ([TransientUser::class, User::class] as $className) {

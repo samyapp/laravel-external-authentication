@@ -23,6 +23,7 @@ class TransientUser implements Authenticatable
     /**
      * Get the name of the unique identifier for the user.
      *
+     * @codeCoverageIgnore
      * @return string
      */
     public function getAuthIdentifierName()
@@ -32,6 +33,7 @@ class TransientUser implements Authenticatable
 
     /**
      * Get the unique identifier for the user.
+     * @codeCoverageIgnore
      *
      * @return mixed
      */
@@ -43,6 +45,7 @@ class TransientUser implements Authenticatable
     /**
      * Get the password for the user.
      *
+     * @codeCoverageIgnore
      * @return string
      */
     public function getAuthPassword()
@@ -53,6 +56,7 @@ class TransientUser implements Authenticatable
     /**
      * Get the token value for the "remember me" session.
      *
+     * @codeCoverageIgnore
      * @return string
      */
     public function getRememberToken()
@@ -65,6 +69,7 @@ class TransientUser implements Authenticatable
      *
      * @param string $value
      * @return void
+     * @codeCoverageIgnore
      */
     public function setRememberToken($value)
     {
@@ -73,7 +78,7 @@ class TransientUser implements Authenticatable
 
     /**
      * Get the column name for the "remember me" token.
-     *
+     * @codeCoverageIgnore
      * @return string
      */
     public function getRememberTokenName()

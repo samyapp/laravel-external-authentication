@@ -168,4 +168,15 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         // should have just added the AuthAttribute from input
         $this->assertEquals($input[0], $attributes['attr']);
     }
+
+    /**
+     * @test
+     */
+    public function attributesFromArrayThrowsInvalidArgumentExceptionForInvalidInputFormat()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        AuthConfig::attributesFromArray([
+            0
+        ]);
+    }
 }
