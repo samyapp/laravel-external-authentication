@@ -5,6 +5,7 @@ namespace Tests;
 use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use SamYapp\LaravelRemoteAuth\DefaultUserCreator;
 use SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes;

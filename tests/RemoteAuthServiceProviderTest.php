@@ -89,4 +89,15 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
     {
         $this->assertEquals($this->developmentAttributes, auth()->guard('web')->input);
     }
+
+    /**
+     * @define-env enableDevelopmentMode
+     * @test
+     */
+    public function exceptionThrownIfDevelopmentModeEnabledInProduction()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        app()->detectEnvironment(fn() => 'production');
+        app('auth')->user();
+    }
 }

@@ -25,6 +25,12 @@ class RemoteAuthServiceProvider extends ServiceProvider
 
         // Register the custom guard driver
         $auth->extend($remoteAuthConfig->id, function (Application $app, string $name) use ($auth, $remoteAuthConfig) {
+            // Cannot run developmentMode in production
+            if ($remoteAuthConfig->developmentMode && $app->environment('production')) {
+                throw new \InvalidArgumentException(
+                    'Authentication development mode must not be enabled in a production environment.'
+                );
+            }
             return new RemoteAuthGuard(
                 $remoteAuthConfig,
                 $auth->createUserProvider($remoteAuthConfig->userProvider),
