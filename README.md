@@ -9,7 +9,7 @@ custom implementation using Nginx's
 This package focuses on _authenticating_ users and setting properties or attributes on
 your user model based on those set via the external identity provider.
 
-![Build Status](https://github.com/samyapp/laravel-remote-auth/actions/workflows/php.yml/badge.svg)
+![Build Status](https://github.com/samyapp/laravel-external-authentication/actions/workflows/php.yml/badge.svg)
 
 ## Security
 
