@@ -1,7 +1,7 @@
 # Laravel External Authentication
 
-Laravel authentication based on HTTP request headers
-or environment variables set by an authenticating reverse proxy server such as
+Laravel authentication package that authenticates users based on HTTP request headers
+or environment variables set by an external authentication source such as
 Apache with basic authentication, SAML2 SSO via mod_auth_mellon, or a
 custom implementation using Nginx's 
 [http_auth_request](http://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
