@@ -1,6 +1,6 @@
 <?php
 
-namespace SamYapp\LaravelRemoteAuth;
+namespace SamYapp\LaravelExternalAuth;
 
 use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\Login;
@@ -10,14 +10,14 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Events\Dispatcher;
-use SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes;
-use SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating;
+use SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes;
+use SamYapp\LaravelExternalAuth\Events\UnknownUserAuthenticating;
 
 /**
  * Authenticates users based on environment variables or http headers
- * @package SamYapp\LaravelRemoteAuth
+ * @package SamYapp\LaravelExternalAuth
  */
-class RemoteAuthGuard implements Guard
+class ExternalAuthGuard implements Guard
 {
     // Laravel trait that implements some required methods
     use GuardHelpers;
@@ -28,7 +28,7 @@ class RemoteAuthGuard implements Guard
     /** @var Dispatcher - event dispatcher */
     public Dispatcher $dispatcher;
 
-    /** @var array - input data from remote request */
+    /** @var array - input data from external request */
     public array $input;
 
     /** @var string - the name of this guard in the auth configuration (default is 'web') */

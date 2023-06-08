@@ -3,15 +3,15 @@
 namespace Tests;
 
 use Illuminate\Config\Repository;
-use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
-use SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider;
-use SamYapp\LaravelRemoteAuth\TransientUserProvider;
+use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
+use SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider;
+use SamYapp\LaravelExternalAuth\TransientUserProvider;
 
 /**
- * @covers \SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider
- * @covers \SamYapp\LaravelRemoteAuth\AuthConfig::fromArray
+ * @covers \SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider
+ * @covers \SamYapp\LaravelExternalAuth\AuthConfig::fromArray
  */
-class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
+class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
 {
     protected $developmentAttributes = ['foo' => 'bar', 'one' => 'two'];
     /**
@@ -24,7 +24,7 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
     protected function getPackageProviders($app)
     {
         return [
-            RemoteAuthServiceProvider::class,
+            ExternalAuthServiceProvider::class,
         ];
     }
 
@@ -36,13 +36,13 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
      */
     protected function defineEnvironment($app)
     {
-        $app['config']->set('auth.guards.web.driver', 'remote-auth');
+        $app['config']->set('auth.guards.web.driver', 'external-auth');
         // define a default config, but allow overriding with already configured by @define-env
-        $app['config']->set('remote-auth', array_merge([
+        $app['config']->set('external-auth', array_merge([
                 'attributePrefix' => 'X-Test-',
             ],
             // may have already been partially defined by @define-env
-            $app['config']->get('remote-auth',[])
+            $app['config']->get('external-auth',[])
             )
         );
     }
@@ -52,7 +52,7 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
      */
     public function ServiceProviderRegistersGuard()
     {
-        $this->assertInstanceOf(RemoteAuthGuard::class, auth()->guard('web'));
+        $this->assertInstanceOf(ExternalAuthGuard::class, auth()->guard('web'));
     }
 
     protected function useTransientUserProvider($app)
@@ -77,8 +77,8 @@ class RemoteAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
 
     protected function enableDevelopmentMode($app)
     {
-        $app['config']->set('remote-auth.developmentMode', true);
-        $app['config']->set('remote-auth.developmentAttributes', $this->developmentAttributes);
+        $app['config']->set('external-auth.developmentMode', true);
+        $app['config']->set('external-auth.developmentAttributes', $this->developmentAttributes);
     }
 
     /**

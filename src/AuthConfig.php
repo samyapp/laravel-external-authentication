@@ -1,6 +1,6 @@
 <?php
 
-namespace SamYapp\LaravelRemoteAuth;
+namespace SamYapp\LaravelExternalAuth;
 
 /**
  * Simple data object for configuration options
@@ -17,11 +17,11 @@ class AuthConfig
     public array $credentialAttributes = ['email'];
 
     /** @var string - the name for this auth guard */
-	public string $id = 'remote-auth';
+	public string $id = 'external-auth';
 
     /**
-     * @var array [remoteName => value] attributes to make available as server vars
-     * for use in development environment without a real remote authentication proxy configured
+     * @var array [externalName => value] attributes to make available as server vars
+     * for use in development environment without a real external authentication proxy configured
      */
     public array $developmentAttributes = [];
 
@@ -31,12 +31,18 @@ class AuthConfig
     /** @var string - the key in config/auth.php 'providers' defining which user provider to use */
     public string $userProvider = 'users';
 
-    /** @var null|callable - optional callable to map remote variables to user attributes */
+    /** @var null|callable - optional callable to map external variables to user attributes */
     public mixed $mapAttributes = null;
+
+    /** @var bool - whether to log input data on each request for debugging purposes */
+    public bool $logInput = false;
+
+    /** @var string - log level to log input at (emergency, alert, critical, error, warning, notice, info, or debug) */
+    public string $logLevel = 'info';
 
 	/**
 	 * Initialise an AuthConfig from a config array
-	 * @param array $config - configuration options as returned by config('remote-auth')
+	 * @param array $config - configuration options as returned by config('external-auth')
 	 * @return AuthConfig
 	 */
 	public static function fromArray(array $config): AuthConfig
@@ -56,7 +62,7 @@ class AuthConfig
 	}
 
     /**
-     * @return callable - (AuthConfig $config, array $remoteData) => [ user-attributes]
+     * @return callable - (AuthConfig $config, array $externalData) => [ user-attributes]
      */
     public function attributeMapper(): callable
     {
@@ -76,18 +82,18 @@ class AuthConfig
 		foreach ($attrs as $attributeName => $attributeDetails) {
 			// each entry in attributeMap can be in the form:
 			// 'attributeName',
-			// 'attributeName' => 'remoteName',
-			// or 'attributeName' => [ 'remote' => 'remoteName', 'required' => true|false ]
-			// where either of 'remote' or 'required' may be absent
+			// 'attributeName' => 'externalName',
+			// or 'attributeName' => [ 'external' => 'externalName', 'required' => true|false ]
+			// where either of 'external' or 'required' may be absent
 
-            // ['attributeName' => ['required' => false, 'remote' => 'remoteName'],]
+            // ['attributeName' => ['required' => false, 'external' => 'externalName'],]
 			if (is_array($attributeDetails)) {
                 $attributes[$attributeName] = new AuthAttribute(
                     $attributeName,
-         $attributeDetails['remote'] ?? $attributeName,
+         $attributeDetails['external'] ?? $attributeName,
             $attributeDetails['required'] ?? true
                 );
-            // ['attributeName' => 'remoteName',]
+            // ['attributeName' => 'externalName',]
 			} else if (is_string($attributeName) && !empty($attributeName)) {
                 $attributes[$attributeName] = new AuthAttribute(
                     $attributeName,

@@ -2,7 +2,7 @@
 
 return [
     //
-    // optional prefix that all remotely set attributes will have as part of their name, e.g. 'MELLON_'
+    // optional prefix that all externally set attributes will have as part of their name, e.g. 'MELLON_'
     //
     'attributePrefix' => '',
 
@@ -11,9 +11,9 @@ return [
     // environment variables by the authentication source and mapped onto your user model.
     // Each element in the array takes the form:
     //
-    //      [ $propertyName => [ 'remote' => $remoteAttribute, 'required' => $required ] ... ],
+    //      [ $propertyName => [ 'external' => $externalAttribute, 'required' => $required ] ... ],
     //        Where:    $propertyName is the name of the attribute on your user model.
-    //                  $remoteAttribute is the name of a single attribute or a regular expression matching zero or
+    //                  $externalAttribute is the name of a single attribute or a regular expression matching zero or
     //                      more attributes provided by the authentication source.
     //                  $required is either true or false and indicates whether the attribute MUST be present.
     //
@@ -24,9 +24,9 @@ return [
     //
     // Then your attributeMap would look something like:
     // 'attributeMap' => [
-    //      'email' => ['remote' => 'MELLON_MAIL', 'required' => true],
-    //      'name' => ['remote' => 'MELLON_NAME', 'required' => true],
-    //      'roles' => ['remote' => 'MELLON_ROLE_.*', 'required' => false],
+    //      'email' => ['external' => 'MELLON_MAIL', 'required' => true],
+    //      'name' => ['external' => 'MELLON_NAME', 'required' => true],
+    //      'roles' => ['external' => 'MELLON_ROLE_.*', 'required' => false],
     // ],
     //
     // If your attribute is not optional, you can use the shorthand ['mail' => 'MELLON_MAIL'] and if an attribute is
@@ -37,7 +37,7 @@ return [
     // dispatched that your app can listen to in order to help detect configuration or data issues.
     //
     'attributeMap' => [
-    //    'email' => [ 'remote' => 'MELLON_MAIL', 'required' => true],
+    //    'email' => [ 'external' => 'MELLON_MAIL', 'required' => true],
     ],
 
     //
@@ -52,19 +52,27 @@ return [
     // When developing locally, for example with Laravel Sail, or running tests in a CI environment
     // it may not be possible to have a configured authentication source to provide your attributes.
     //
-    // If 'developmentMode' => true, then the RemoteAuthServiceProvider will use the attributes defined in the
+    // If 'developmentMode' => true, then the ExternalAuthServiceProvider will use the attributes defined in the
     // 'developmentAttributes' array below instead of looking for server environment variables or request headers.
     //
     'developmentAttributes' => [
-        'TESTING_USERNAME' => env('REMOTE_AUTH_TESTING_USERNAME', 'sam'),
-        'TESTING_EMAIL' => env('REMOTE_AUTH_TESTING_EMAIL', 'sam@example.com'),
+        'TESTING_USERNAME' => env('EXTERNAL_AUTH_TESTING_USERNAME', 'sam'),
+        'TESTING_EMAIL' => env('EXTERNAL_AUTH_TESTING_EMAIL', 'sam@example.com'),
     ],
+
+    //
+    // Log the array of data that the guard is getting its attributes from (e.g. Request::server()).
+    // Useful to check if your app can see whatever attributes it expects from the external authentication.
+    // Set this to true and ensure the log level matches your laravel app log level.if you want to dump to the log on each request.
+    //
+    'logInput' => env('EXTERNAL_AUTH_LOG_INPUT', false),
+    'logLevel' => env('EXTERNAL_AUTH_LOG_LEVEL', false),
 
     //
     // Enable development mode (uses the array of developmentAttributes instead of server environment variables or
     // request headers).
     //
-    'developmentMode' => env('REMOTE_AUTH_DEV_MODE', false),
+    'developmentMode' => env('EXTERNAL_AUTH_DEV_MODE', false),
 
     //
     // Name of the UserProvider to use to retrieve users. The name is one of the keys in the providers array
@@ -90,5 +98,5 @@ return [
     //
     // The name to register this authentication guard driver under. You probably don't need to change this.
     //
-    'id' => 'remote-auth',
+    'id' => 'external-auth',
 ];

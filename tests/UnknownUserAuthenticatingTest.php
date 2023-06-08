@@ -2,11 +2,11 @@
 
 namespace Tests;
 
-use SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating;
-use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
+use SamYapp\LaravelExternalAuth\Events\UnknownUserAuthenticating;
+use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
 
 /**
- * @covers \SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating
+ * @covers \SamYapp\LaravelExternalAuth\Events\UnknownUserAuthenticating
  */
 class UnknownUserAuthenticatingTest extends \PHPUnit\Framework\TestCase
 {
@@ -15,7 +15,7 @@ class UnknownUserAuthenticatingTest extends \PHPUnit\Framework\TestCase
      */
     public function constructorSetsAttributesArrayAndGuardObjectToPublicProperties()
     {
-        $guard = $this->createMock(RemoteAuthGuard::class);
+        $guard = $this->createMock(ExternalAuthGuard::class);
         $attrs = ['foo' => 'bar'];
         $obj = new UnknownUserAuthenticating($attrs, $guard);
         $this->assertEquals($guard, $obj->guard);

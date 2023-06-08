@@ -1,16 +1,16 @@
 <?php
 
-namespace SamYapp\LaravelRemoteAuth;
+namespace SamYapp\LaravelExternalAuth;
 
 /**
- * Default callable to map remote server, request or env variables to user attributes
+ * Default callable to map external server, request or env variables to user attributes
  */
 class DefaultAttributeMapper
 {
     /**
      * Maps keys and values from $input to an array with the keys renamed as required for user attributes
-     * If remoteName contains a '*' wildcard, the matching values are mapped to an array.
-     * e.g. remoteName = 'department*'
+     * If externalName contains a '*' wildcard, the matching values are mapped to an array.
+     * e.g. externalName = 'department*'
      * and input contains: ['department_1' => 'sales', 'department_2' => 'admin'],
      * then output is: ['department' => ['sales','admin']]
      * @param AuthConfig $config
@@ -21,7 +21,7 @@ class DefaultAttributeMapper
     {
         $attributes = [];
         foreach ($config->attributeMap as $attribute) {
-            $key = $config->attributePrefix . $attribute->remoteName;
+            $key = $config->attributePrefix . $attribute->externalName;
             // if an match exists for exact key or lower or uppercase take that value
             foreach ([$key, strtolower($key), strtoupper($key)] as $inputKey) {
                 if (array_key_exists($inputKey, $input)) {

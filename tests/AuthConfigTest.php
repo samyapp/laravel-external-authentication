@@ -5,16 +5,16 @@ namespace Tests;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable;
-use SamYapp\LaravelRemoteAuth\AuthAttribute;
-use SamYapp\LaravelRemoteAuth\AuthConfig;
-use SamYapp\LaravelRemoteAuth\DefaultAttributeMapper;
-use SamYapp\LaravelRemoteAuth\DefaultUserCreator;
-use SamYapp\LaravelRemoteAuth\DefaultUserSyncer;
-use SamYapp\LaravelRemoteAuth\TransientUser;
+use SamYapp\LaravelExternalAuth\AuthAttribute;
+use SamYapp\LaravelExternalAuth\AuthConfig;
+use SamYapp\LaravelExternalAuth\DefaultAttributeMapper;
+use SamYapp\LaravelExternalAuth\DefaultUserCreator;
+use SamYapp\LaravelExternalAuth\DefaultUserSyncer;
+use SamYapp\LaravelExternalAuth\TransientUser;
 
 /**
- * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
- * @covers \SamYapp\LaravelRemoteAuth\AuthAttribute
+ * @covers \SamYapp\LaravelExternalAuth\AuthConfig
+ * @covers \SamYapp\LaravelExternalAuth\AuthAttribute
  */
 class AuthConfigTest extends \PHPUnit\Framework\TestCase
 {
@@ -26,7 +26,7 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         // simple attributes with non-default values to check they
         // get set
         $properties = [
-            'id' => 'remote-authy',
+            'id' => 'external-authy',
             'attributePrefix' => 'SAML_',
             'credentialAttributes' => ['username', 'password'],
             'developmentMode' => true,
@@ -138,32 +138,32 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
     {
         $input = [
             // optional attribute
-            new AuthAttribute('attr', 'remoteAttr', false),
-            // required attribute where both attribute and remote name are "sameName"
+            new AuthAttribute('attr', 'externalAttr', false),
+            // required attribute where both attribute and external name are "sameName"
             'sameName',
-            // required attribute named "localName" from remote var "remoteName"
-            'localName' => 'remoteName',
-            // required attribute "requiredrequiredAttribute" with remote name "remoteAttribute"
-            'requiredAttribute' => ['remote' => 'remoteAttribute', 'required' => true],
-            // optional attribute "optionalAttribute" with remote name "remoteAttribute"
-            'optionalAttribute' => ['remote' => 'remoteAttribute', 'required' => false],
+            // required attribute named "localName" from external var "externalName"
+            'localName' => 'externalName',
+            // required attribute "requiredrequiredAttribute" with external name "externalAttribute"
+            'requiredAttribute' => ['external' => 'externalAttribute', 'required' => true],
+            // optional attribute "optionalAttribute" with external name "externalAttribute"
+            'optionalAttribute' => ['external' => 'externalAttribute', 'required' => false],
         ];
         $attributes = AuthConfig::attributesFromArray($input);
 
         $this->assertEquals('sameName', $attributes['sameName']->name);
-        $this->assertEquals('sameName', $attributes['sameName']->remoteName);
+        $this->assertEquals('sameName', $attributes['sameName']->externalName);
         $this->assertTrue($attributes['sameName']->required);
 
         $this->assertEquals('localName', $attributes['localName']->name);
-        $this->assertEquals('remoteName', $attributes['localName']->remoteName);
+        $this->assertEquals('externalName', $attributes['localName']->externalName);
         $this->assertTrue($attributes['localName']->required);
 
         $this->assertEquals('requiredAttribute', $attributes['requiredAttribute']->name);
-        $this->assertEquals('remoteAttribute', $attributes['requiredAttribute']->remoteName);
+        $this->assertEquals('externalAttribute', $attributes['requiredAttribute']->externalName);
         $this->assertTrue($attributes['requiredAttribute']->required);
 
         $this->assertEquals('optionalAttribute', $attributes['optionalAttribute']->name);
-        $this->assertEquals('remoteAttribute', $attributes['optionalAttribute']->remoteName);
+        $this->assertEquals('externalAttribute', $attributes['optionalAttribute']->externalName);
         $this->assertFalse($attributes['optionalAttribute']->required);
 
         // should have just added the AuthAttribute from input

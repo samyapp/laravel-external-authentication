@@ -2,12 +2,12 @@
 
 namespace Tests;
 
-use SamYapp\LaravelRemoteAuth\AuthConfig;
-use SamYapp\LaravelRemoteAuth\DefaultAttributeMapper;
+use SamYapp\LaravelExternalAuth\AuthConfig;
+use SamYapp\LaravelExternalAuth\DefaultAttributeMapper;
 
 /**
- * @covers \SamYapp\LaravelRemoteAuth\DefaultAttributeMapper
- * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
+ * @covers \SamYapp\LaravelExternalAuth\DefaultAttributeMapper
+ * @covers \SamYapp\LaravelExternalAuth\AuthConfig
  */
 class DefaultAttributeMapperTest extends \PHPUnit\Framework\TestCase
 {
@@ -23,19 +23,19 @@ class DefaultAttributeMapperTest extends \PHPUnit\Framework\TestCase
         ];
         $inputNoPrefix = [
             'single' => 'singleValue',
-            'remoteOne' => 'oneValue',
-            'remoteTwo' => 'twoValue',
+            'externalOne' => 'oneValue',
+            'externalTwo' => 'twoValue',
         ];
         $inputPrefixed = [
             'MELLON_single' => 'singleValue',
-            'MELLON_remoteOne' => 'oneValue',
-            'MELLON_remoteTwo' => 'twoValue',
+            'MELLON_externalOne' => 'oneValue',
+            'MELLON_externalTwo' => 'twoValue',
         ];
         $config = AuthConfig::fromArray([
             'attributeMap' => [
                 'single',
-                'one' => 'remoteOne',
-                'two' => 'remoteTwo',
+                'one' => 'externalOne',
+                'two' => 'externalTwo',
             ]
         ]);
         $this->assertEqualsCanonicalizing($expected, $config->attributeMapper()($config, $inputNoPrefix));

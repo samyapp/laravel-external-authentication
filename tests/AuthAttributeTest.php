@@ -2,12 +2,12 @@
 
 namespace Tests;
 
-use SamYapp\LaravelRemoteAuth\AuthAttribute;
-use SamYapp\LaravelRemoteAuth\AuthConfig;
-use SamYapp\LaravelRemoteAuth\DefaultAttributeMapper;
+use SamYapp\LaravelExternalAuth\AuthAttribute;
+use SamYapp\LaravelExternalAuth\AuthConfig;
+use SamYapp\LaravelExternalAuth\DefaultAttributeMapper;
 
 /**
- * @covers \SamYapp\LaravelRemoteAuth\AuthAttribute
+ * @covers \SamYapp\LaravelExternalAuth\AuthAttribute
  */
 class AuthAttributeTest extends \PHPUnit\Framework\TestCase
 {
@@ -17,11 +17,11 @@ class AuthAttributeTest extends \PHPUnit\Framework\TestCase
     public function constructorSetsPropertiesThatCanBeAccessedLater()
     {
         $name = 'attribute name';
-        $remoteName = 'remote attribute name';
+        $externalName = 'external attribute name';
         $required = false;
-        $attribute = new AuthAttribute($name, $remoteName, $required);
+        $attribute = new AuthAttribute($name, $externalName, $required);
         $this->assertEquals($name, $attribute->name);
-        $this->assertEquals($remoteName, $attribute->remoteName);
+        $this->assertEquals($externalName, $attribute->externalName);
         $this->assertEquals($required, $attribute->required);
     }
 }

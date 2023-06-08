@@ -1,4 +1,4 @@
-# Laravel Remote Auth
+# Laravel External Authentication
 
 Laravel authentication based on HTTP request headers
 or environment variables set by an authenticating reverse proxy server such as
@@ -36,20 +36,32 @@ avoid other users on the network being able to make requests with forged headers
 
 ## Quickstart
 
-1. Install: `composer require samyapp/laravel-remote-auth`
+1. Install: `composer require samyapp/laravel-external-authentication`
 2. Publish the configuration: `php artisan publish`
-4. Configure your application to use the Remote Guard:
+4. Configure your application to use the External Guard:
 
    _config/auth.php_:
    ```
    'guards' => [
         'web' => [
-            'driver' => 'remote-auth',
+            'driver' => 'external-auth',
             'model' => App\User::class,
         ],
     ],
    ```
-3. Edit `config/remote-auth.php`
+3. Edit `config/external-auth.php`
+
+## Troubleshooting
+
+When configuring an external authentication source such as Apache mod_mellon_auth it can be
+useful to see what attributes and values it is sending to PHP.
+
+You can enable logging of this data (using your app's Laravel logging configuration) by setting
+`'logInput' => true,` in your config. You must also ensure that `'logLevel'` is set at least
+to the minimum level that your app's logging level is (e.g. info, debug, warning, etc).
+
+Be aware that this will (except when developmentMode = true) dump the contents of Request::server()
+into your Laravel logs so it should only be enabled when essential for troubleshooting.
 
 ## Development / Testing Configuration
 
@@ -57,7 +69,7 @@ Configuring an authentication service such as Apache mod mellon
 Instead of configuring an authentication service during development you can enable
 development mode and specify the headers that you want set:
 
-`config/remote-auth.php`
+`config/external-auth.php`
 ```php
 <?php
 
@@ -88,7 +100,7 @@ and the user model would have the 'role' property set to the value 'admin'.
 
 ## Authenticating Users
 
-RemoteAuthGuard can work with your app's user model in one of the following ways:
+ExternalAuthGuard can work with your app's user model in one of the following ways:
 
 1. Users exist within your app (the configured user provider can retrieve one that matches the credentials)
    and authentication fails if credential attributes do not match an existing user.
@@ -103,11 +115,11 @@ Use the standard Laravel methods to authorize users for specific routes or actio
 
 ### Working with your existing users and User model
 
-RemoteAuthGuard uses the user provider and user model configured in your 
+ExternalAuthGuard uses the user provider and user model configured in your 
 `config/auth.php` for the guard in the same way as the default Laravel `SessionGuard`,
 calling `UserProvider::retrieveByCredentials()` with the values
 (for example, `email`) from the server named in
-the `config/remote-auth.php` `credentialAttributes` setting.
+the `config/external-auth.php` `credentialAttributes` setting.
 
 #### Creating "missing" users
 
@@ -139,7 +151,7 @@ _app/Providers/EventServiceProvider.php_
 
 ```
 
-Alternatively, you might want to log whenever a user is authenticated remotely but does not
+Alternatively, you might want to log whenever a user is authenticated externally but does not
 have a matching user account in your app.
 
 #### Updating User Attributes
@@ -150,7 +162,7 @@ the `Illuminate\Auth\Events\Login` event which is fired when the guard's `login(
 has been called.
 
 This event will have the authenticated `User` model in its `$user` property
-which will have the values of the properties set by the remote authentication source.
+which will have the values of the properties set by the external authentication source.
 
 For a standard Laravel User model, you can just call `$event->user->save()` to sync
 it with your app database, e.g:
@@ -172,13 +184,13 @@ _app/Providers/EventServiceProvider.php_
 
 ### Working with "Transient" users
 
-RemoteAuthGuard can be used for applications which do not have a separate users
-database table, relying entirely on the remote authentication source to set the
+ExternalAuthGuard can be used for applications which do not have a separate users
+database table, relying entirely on the external authentication source to set the
 attributes that define a user.
 
 You can use the provided [TransientUserProvider](src/TransientUserProvider.php) which is
 automatically registered by the package service provider, and which accepts the attributes
-passed in from the remote authentication source and will return a user object with the values
+passed in from the external authentication source and will return a user object with the values
 of each attribute assigned to it without attempting to retrieve an existing user from a database.
 
 The Transient user provider can be configured to use any class as the created user object.
@@ -195,7 +207,7 @@ _config/auth.php_
 
   'guards' => [
       'web' => [
-         'driver'   => 'remote-auth',
+         'driver'   => 'external-auth',
          'provider' => 'transient',
       ],
       
@@ -206,7 +218,7 @@ _config/auth.php_
    'providers' => [
       'transient' => [
          'driver' => 'transient-user',
-         'model'  => \SamYapp\LaravelRemoteAuth\TransientUser::class,
+         'model'  => \SamYapp\LaravelExternalAuth\TransientUser::class,
       ],
 
       // ... other provider configuration

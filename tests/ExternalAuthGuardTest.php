@@ -9,24 +9,24 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
-use SamYapp\LaravelRemoteAuth\AuthConfig;
-use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
-use SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider;
-use SamYapp\LaravelRemoteAuth\TransientUser;
-use SamYapp\LaravelRemoteAuth\TransientUserProvider;
+use SamYapp\LaravelExternalAuth\AuthConfig;
+use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
+use SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider;
+use SamYapp\LaravelExternalAuth\TransientUser;
+use SamYapp\LaravelExternalAuth\TransientUserProvider;
 
 /**
- * @covers \SamYapp\LaravelRemoteAuth\RemoteAuthGuard
- * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
+ * @covers \SamYapp\LaravelExternalAuth\ExternalAuthGuard
+ * @covers \SamYapp\LaravelExternalAuth\AuthConfig
  */
-class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
+class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
 {
     protected $developmentAttributes = ['foo' => 'bar', 'one' => 'two'];
 
     protected function getPackageProviders($app)
     {
         return [
-            RemoteAuthServiceProvider::class,
+            ExternalAuthServiceProvider::class,
         ];
     }
 
@@ -38,11 +38,11 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
      */
     protected function defineEnvironment($app)
     {
-        $app['config']->set('auth.guards.web.driver', 'remote-auth');
+        $app['config']->set('auth.guards.web.driver', 'external-auth');
         // define a default config, but allow overriding with already configured by @define-env
-        $app['config']->set('remote-auth', array_merge([],
+        $app['config']->set('external-auth', array_merge([],
                 // may have already been partially defined by @define-env
-                $app['config']->get('remote-auth',[])
+                $app['config']->get('external-auth',[])
             )
         );
     }
@@ -56,8 +56,8 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
         $provider = new TransientUserProvider(TransientUser::class);
         $input = ['one' => 'two', 'three' => 'four'];
         $dispatcher = app(Dispatcher::class);
-        $guardName = 'remote-foo';
-        $guard = new RemoteAuthGuard($config, $provider, $input, $dispatcher, $guardName);
+        $guardName = 'external-foo';
+        $guard = new ExternalAuthGuard($config, $provider, $input, $dispatcher, $guardName);
         $this->assertEquals($config, $guard->config);
         $this->assertEquals($provider, $guard->getProvider());
         $this->assertEquals($input, $guard->input);
@@ -71,10 +71,10 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
     public function constructorSetsConfigUserProviderAndRequest()
     {
         $auth = app('auth');
-        $config = AuthConfig::fromArray(['id' => 'test-remote-auth']);
+        $config = AuthConfig::fromArray(['id' => 'test-external-auth']);
         $provider = $auth->getProvider('database');
         $input = ['foo' => 'bar'];
-        $guard = new RemoteAuthGuard($config, $provider, $input, app(Dispatcher::class));
+        $guard = new ExternalAuthGuard($config, $provider, $input, app(Dispatcher::class));
         $this->assertEquals($config, $guard->config);
         $this->assertEquals($provider, $guard->getProvider());
         $this->assertEquals($input, $guard->input);
@@ -86,9 +86,9 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
     public function userReturnsTheAuthenticatedUserForMultipleCallsOnTheSameRequest()
     {
         $auth = app('auth');
-        $config = AuthConfig::fromArray(['id' => 'remote-auth']);
+        $config = AuthConfig::fromArray(['id' => 'external-auth']);
         $provider = $auth->getProvider('users');
-        $guard = new RemoteAuthGuard($config, $provider, [], app(Dispatcher::class));
+        $guard = new ExternalAuthGuard($config, $provider, [], app(Dispatcher::class));
         $user = new TransientUser(['foo' => 'bar']);
         // set the authenticated user
         $guard->setUser($user);
@@ -111,13 +111,13 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
     {
         $app['config']->set('auth.providers.users.driver', 'transient');
         $app['config']->set('auth.providers.users.model', TransientUser::class);
-        $app['config']->set('remote-auth.developmentMode', true);
+        $app['config']->set('external-auth.developmentMode', true);
         // set the "fake" attributes for dev mode
-        $app['config']->set('remote-auth.developmentAttributes', $this->developmentAttributes);
+        $app['config']->set('external-auth.developmentAttributes', $this->developmentAttributes);
         // set the attributes we expect to be present
-        $app['config']->set('remote-auth.attributeMap', array_keys($this->developmentAttributes));
+        $app['config']->set('external-auth.attributeMap', array_keys($this->developmentAttributes));
         // set the attributes used for credentials
-        $app['config']->set('remote-auth.credentialAttributes', array_keys($this->developmentAttributes));
+        $app['config']->set('external-auth.credentialAttributes', array_keys($this->developmentAttributes));
     }
 
     /**
@@ -139,7 +139,7 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
      */
     public function setAttributesSetsPropertiesOnAuthenticatableObject()
     {
-        $guard = new RemoteAuthGuard(
+        $guard = new ExternalAuthGuard(
             AuthConfig::fromArray([]),
             app('auth')->guard()->getProvider(),
             [],
@@ -166,7 +166,7 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
             ]
         ]);
         $input = ['name' => 'foo', 'username' => 'bar'];
-        $guard = new RemoteAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Dispatcher::class));
+        $guard = new ExternalAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Dispatcher::class));
         $expected = [];
         $this->assertEquals($expected, $guard->getMissingRequiredAttributes($config, $input));
     }
@@ -184,7 +184,7 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
             ]
         ]);
         $input = ['name' => 'foo', 'email' => 'bar'];
-        $guard = new RemoteAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Dispatcher::class));
+        $guard = new ExternalAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Dispatcher::class));
         $expected = [];
         $this->assertEquals($expected, $guard->getMissingRequiredAttributes($config, $input));
     }
@@ -202,7 +202,7 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
             ]
         ]);
         $input = ['name' => 'foo','email' => 'a@example.com'];
-        $guard = new RemoteAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Dispatcher::class));
+        $guard = new ExternalAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Dispatcher::class));
         $expected = ['username' => $config->attributeMap['username']];
         $this->assertEquals($expected, $guard->getMissingRequiredAttributes($config, $input));
     }
@@ -217,7 +217,7 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
             'credentialAttributes' => ['username'],
         ]);
         $credentials = $input = ['username' => 'foo'];
-        $guard = new RemoteAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Dispatcher::class));
+        $guard = new ExternalAuthGuard($config, app('auth')->guard()->getProvider(), $input, app(Dispatcher::class));
         $this->assertFalse($guard->validate($credentials));
     }
 
@@ -226,7 +226,7 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
      */
     public function loginSetsTheUserToTheGivenUser()
     {
-        $guard = new RemoteAuthGuard(AuthConfig::fromArray([]), app('auth')->guard()->getProvider(), [], app(Dispatcher::class));
+        $guard = new ExternalAuthGuard(AuthConfig::fromArray([]), app('auth')->guard()->getProvider(), [], app(Dispatcher::class));
         $user = new TransientUser(['foo' => 'bar']);
         $guard->login($user);
         $this->assertEquals($user, $guard->user());
@@ -238,7 +238,7 @@ class RemoteAuthGuardTest extends \Orchestra\Testbench\TestCase
     public function setUserSetsTheUserToTheGivenUserAndDispatchesAuthenticatedEvent()
     {
         Event::fake();
-        $guard = new RemoteAuthGuard(AuthConfig::fromArray([]), app('auth')->guard()->getProvider(), [], app(Dispatcher::class));
+        $guard = new ExternalAuthGuard(AuthConfig::fromArray([]), app('auth')->guard()->getProvider(), [], app(Dispatcher::class));
         $user = new TransientUser(['foo' => 'bar']);
         $guard->setUser($user);
         $this->assertEquals($user, $guard->user());

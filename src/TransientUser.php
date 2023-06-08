@@ -1,6 +1,6 @@
 <?php
 
-namespace SamYapp\LaravelRemoteAuth;
+namespace SamYapp\LaravelExternalAuth;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 

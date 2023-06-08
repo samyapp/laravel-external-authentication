@@ -3,11 +3,11 @@
 namespace Tests;
 
 use Illuminate\Foundation\Auth\User;
-use SamYapp\LaravelRemoteAuth\TransientUser;
-use SamYapp\LaravelRemoteAuth\TransientUserProvider;
+use SamYapp\LaravelExternalAuth\TransientUser;
+use SamYapp\LaravelExternalAuth\TransientUserProvider;
 
 /**
- * @covers SamYapp\LaravelRemoteAuth\TransientUser
+ * @covers SamYapp\LaravelExternalAuth\TransientUser
  */
 class TransientUserTest extends \PHPUnit\Framework\TestCase
 {

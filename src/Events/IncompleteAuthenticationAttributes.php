@@ -1,10 +1,10 @@
 <?php
 
-namespace SamYapp\LaravelRemoteAuth\Events;
+namespace SamYapp\LaravelExternalAuth\Events;
 
 use Illuminate\Foundation\Bus\Dispatchable;
-use SamYapp\LaravelRemoteAuth\AuthAttribute;
-use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
+use SamYapp\LaravelExternalAuth\AuthAttribute;
+use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
 
 class IncompleteAuthenticationAttributes
 {
@@ -12,15 +12,15 @@ class IncompleteAuthenticationAttributes
     /**
      * @param AuthAttribute[] $missingAttributes
      * @param string[] $attributes
-     * @param RemoteAuthGuard $param
+     * @param ExternalAuthGuard $param
      */
     public function __construct(
         /** @var AuthAttribute[] $missingAttributes - Required AuthAttributes missing from the request */
         public array $missingAttributes,
         /** @var string[] $attributes - Attribute values keyed by name that were present in the request */
         public array $attributes,
-        /** @var RemoteAuthGuard $guard - The guard that dispatched the event */
-        public RemoteAuthGuard $guard)
+        /** @var ExternalAuthGuard $guard - The guard that dispatched the event */
+        public ExternalAuthGuard $guard)
     {
     }
 }

@@ -2,13 +2,13 @@
 
 namespace Tests;
 
-use SamYapp\LaravelRemoteAuth\AuthAttribute;
-use SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes;
-use SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating;
-use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
+use SamYapp\LaravelExternalAuth\AuthAttribute;
+use SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes;
+use SamYapp\LaravelExternalAuth\Events\UnknownUserAuthenticating;
+use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
 
 /**
- * @covers \SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes
+ * @covers \SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes
  */
 class IncompleteAuthenticationAttributesTest extends \PHPUnit\Framework\TestCase
 {
@@ -17,7 +17,7 @@ class IncompleteAuthenticationAttributesTest extends \PHPUnit\Framework\TestCase
      */
     public function constructorSetsParameterValuesToPublicProperties()
     {
-        $guard = $this->createMock(RemoteAuthGuard::class);
+        $guard = $this->createMock(ExternalAuthGuard::class);
         $attrs = ['foo' => 'bar'];
         $missing = [
             new AuthAttribute('missing1', 'x-missing-1', false),

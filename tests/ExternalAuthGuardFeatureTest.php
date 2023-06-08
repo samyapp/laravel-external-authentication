@@ -7,20 +7,20 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
-use SamYapp\LaravelRemoteAuth\DefaultUserCreator;
-use SamYapp\LaravelRemoteAuth\Events\IncompleteAuthenticationAttributes;
-use SamYapp\LaravelRemoteAuth\Events\UnknownUserAuthenticating;
-use SamYapp\LaravelRemoteAuth\RemoteAuthGuard;
-use SamYapp\LaravelRemoteAuth\RemoteAuthServiceProvider;
-use SamYapp\LaravelRemoteAuth\TransientUser;
-use SamYapp\LaravelRemoteAuth\TransientUserProvider;
+use SamYapp\LaravelExternalAuth\DefaultUserCreator;
+use SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes;
+use SamYapp\LaravelExternalAuth\Events\UnknownUserAuthenticating;
+use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
+use SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider;
+use SamYapp\LaravelExternalAuth\TransientUser;
+use SamYapp\LaravelExternalAuth\TransientUserProvider;
 use Tests\Support\TestUser;
 
 /**
- * @covers \SamYapp\LaravelRemoteAuth\RemoteAuthGuard
- * @covers \SamYapp\LaravelRemoteAuth\AuthConfig
+ * @covers \SamYapp\LaravelExternalAuth\ExternalAuthGuard
+ * @covers \SamYapp\LaravelExternalAuth\AuthConfig
  */
-class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
+class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
 {
     protected $developmentAttributes = ['foo' => 'bar', 'one' => 'two'];
 
@@ -41,7 +41,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
     protected function getPackageProviders($app)
     {
         return [
-            RemoteAuthServiceProvider::class,
+            ExternalAuthServiceProvider::class,
         ];
     }
 
@@ -55,18 +55,18 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
     {
         // These will override the orchestral/testbench laravel app defaults
         // config/auth.php
-        $app['config']->set('auth.guards.web.driver', 'remote-auth');
+        $app['config']->set('auth.guards.web.driver', 'external-auth');
         $app['config']->set('auth.providers.users.model', $this->userModel);
 
         // define a default config, but allow overriding with already configured by @define-env
-        // config/remote-auth.php
+        // config/external-auth.php
         $defaults = [
             'attributePrefix' => 'X-TESTING-',
             'attributeMap' => [
                 'email' => 'UID',
                 'name' => 'DISPLAY-NAME',
-                // attributes where the remote is a regex become arrays
-                'roles' => ['remote' => 'ROLE-.*', 'required' => true],
+                // attributes where the external is a regex become arrays
+                'roles' => ['external' => 'ROLE-.*', 'required' => true],
             ],
             'credentialAttributes' => ['email'],
             'developmentMode' => true,
@@ -77,7 +77,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
                 'X-TESTING-ROLE-1' => static::USER_ROLE,
             ],
         ];
-        $app['config']->set('remote-auth', array_merge($defaults, $app['config']->get('remote-auth',[])));
+        $app['config']->set('external-auth', array_merge($defaults, $app['config']->get('external-auth',[])));
     }
 
     public function configureTransientUserProviderWithDefaultUserModel($app)
@@ -95,7 +95,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         Event::fake();
         $user = app('auth')->user();
         $guard = app('auth')->guard();
-        $this->assertInstanceOf(RemoteAuthGuard::class, $guard);
+        $this->assertInstanceOf(ExternalAuthGuard::class, $guard);
         $this->assertInstanceOf(TestUser::class, $user);
         $this->assertEquals(static::TEST_EMAIL, $user->email);
         $this->assertEquals(static::TEST_USER_NAME, $user->name);
@@ -198,7 +198,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
     protected function configureMissingRequiredAttributes()
     {
         // don't set the name which is required
-        app('config')->set('remote-auth.developmentAttributes',[
+        app('config')->set('external-auth.developmentAttributes',[
             'X-TESTING-UID' => static::TEST_EMAIL,
             'X-TESTING-ROLE-0' => static::ADMIN_ROLE,
             'X-TESTING-ROLE-1' => static::USER_ROLE,
@@ -229,7 +229,7 @@ class RemoteAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
     protected function configureTransientUserProviderAndMissingRequiredAttributes()
     {
         // don't set the name which is required
-        app('config')->set('remote-auth.developmentAttributes',[
+        app('config')->set('external-auth.developmentAttributes',[
             'X-TESTING-UID' => static::TEST_EMAIL,
             'X-TESTING-ROLE-0' => static::ADMIN_ROLE,
             'X-TESTING-ROLE-1' => static::USER_ROLE,
