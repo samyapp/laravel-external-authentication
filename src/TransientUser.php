@@ -28,9 +28,13 @@ class TransientUser implements Authenticatable
      */
     public function getAuthIdentifierName()
     {
-
+        $this->methodNotImplemented(__METHOD__);
     }
 
+    protected function methodNotImplemented(string $method)
+    {
+        throw new \Exception(sprintf('Method %s::%s is not implemented.', __CLASS__, $method));
+    }
     /**
      * Get the unique identifier for the user.
      * @codeCoverageIgnore
@@ -39,7 +43,7 @@ class TransientUser implements Authenticatable
      */
     public function getAuthIdentifier()
     {
-
+        $this->methodNotImplemented(__METHOD__);
     }
 
     /**
@@ -50,7 +54,7 @@ class TransientUser implements Authenticatable
      */
     public function getAuthPassword()
     {
-
+        $this->methodNotImplemented(__METHOD__);
     }
 
     /**
@@ -61,7 +65,7 @@ class TransientUser implements Authenticatable
      */
     public function getRememberToken()
     {
-
+        $this->methodNotImplemented(__METHOD__);
     }
 
     /**
@@ -73,7 +77,7 @@ class TransientUser implements Authenticatable
      */
     public function setRememberToken($value)
     {
-        
+        $this->methodNotImplemented(__METHOD__);
     }
 
     /**
@@ -83,6 +87,6 @@ class TransientUser implements Authenticatable
      */
     public function getRememberTokenName()
     {
-        
+        $this->methodNotImplemented(__METHOD__);
     }
 }
