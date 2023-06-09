@@ -59,6 +59,12 @@ return [
         'TESTING_USERNAME' => env('EXTERNAL_AUTH_TESTING_USERNAME', 'sam'),
         'TESTING_EMAIL' => env('EXTERNAL_AUTH_TESTING_EMAIL', 'sam@example.com'),
     ],
+    //
+    // Enable development mode (uses the array of developmentAttributes instead of server environment variables or
+    // request headers).
+    //
+    'developmentMode' => env('EXTERNAL_AUTH_DEV_MODE', false),
+
 
     //
     // Log the array of data that the guard is getting its attributes from (e.g. Request::server()).
@@ -67,12 +73,6 @@ return [
     //
     'logInput' => env('EXTERNAL_AUTH_LOG_INPUT', false),
     'logLevel' => env('EXTERNAL_AUTH_LOG_LEVEL', false),
-
-    //
-    // Enable development mode (uses the array of developmentAttributes instead of server environment variables or
-    // request headers).
-    //
-    'developmentMode' => env('EXTERNAL_AUTH_DEV_MODE', false),
 
     //
     // Name of the UserProvider to use to retrieve users. The name is one of the keys in the providers array
@@ -92,6 +92,10 @@ return [
     //
     // You will only need this if the default attribute mapping is not sufficient. See DefaultAttributeMapper
     // for the default implementation (when the value below is null).
+    //
+    // Note that Laravel config caching may not work if you use an anonymous function as the value below, instead
+    // you can create a class with a static method and configure this as:
+    // 'mapAttributes' => 'ClassName::staticMapAttributesMethodName'
     //
     'mapAttributes' => null,
 

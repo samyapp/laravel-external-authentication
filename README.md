@@ -37,19 +37,41 @@ avoid other users on the network being able to make requests with forged headers
 ## Quickstart
 
 1. Install: `composer require samyapp/laravel-external-authentication`
-2. Publish the configuration: `php artisan publish`
-4. Configure your application to use the External Guard:
+2. Publish the configuration: 
+   ```
+   php artisan vendor:publish --provider="SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider"
+   ```
+3. Configure your application to use the External Guard:
 
    _config/auth.php_:
    ```
    'guards' => [
         'web' => [
             'driver' => 'external-auth',
-            'model' => App\User::class,
+            'provider' => 'users',
         ],
     ],
    ```
-3. Edit `config/external-auth.php`
+   
+4. If using [transient users](#working-with--transient--users) in your app, 
+   configure the user provider and model:
+
+   _config/auth.php_:
+   ```
+   'providers' => [
+        'users' => [
+            'driver' => 'transient',
+            'model' => '\SamYapp\LaravelExternalAuth\TransientUser',
+        ],
+    ],
+   ```
+
+5. Edit `config/external-auth.php` with your [configuration](#configuration).
+
+6. Add authentication to the routes you want to protect.
+7. Access the authenticated user the same way you would in any normal Laravel app.
+   Any user attributes defined in your `config/external-auth.php` `'attributeMap'`
+   should be available on your user model.
 
 ## Troubleshooting
 
@@ -239,4 +261,48 @@ set the `providers.transient.model` parameter as above, e.g.:
       // ... other provider configuration
    ],
 
+```
+
+### Additional Options
+
+#### Custom Attribute Mapping
+
+If you require additional logic to map the externally set attributes to your user model
+you can create a callable and set the `mapAttributes` configuration setting to it.
+
+See the [DefaultAttributeMapper](src/DefaultAttributeMapper.php) implementation for reference.
+
+For example, create a `\My\App\MyAttributeMapper` class with a static 
+`mapAttributes(AuthConfig $config, array $input): array` method, and in your `externa-auth.php`
+config set:
+
+_config/external-auth.php_
+```php
+return [
+    // ... configuration...
+
+    'mapAttributes' => '\My\App\MyAttributeMapper::mapAttributes',
+
+    // ... more config
+];
+```
+
+#### Authentication Guard Driver ID
+
+To specify that your app should use the ExternalAuthGuard to authenticate its users
+you specify `external-auth` as the name of the guard driver in your `config/auth.php`.
+
+This is the name that the ExternalAuthServiceProvider registers the guard under by default.
+
+If you need to use a different name you can set the `id` configuration option (ensuring you
+also update the guards driver value to match).
+
+_config/external-auth.php_
+```php
+return [    // ... configuration...
+
+    'id' => 'my-external-auth',
+
+    // ... more config
+]; 
 ```

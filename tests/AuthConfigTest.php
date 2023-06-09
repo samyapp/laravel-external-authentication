@@ -104,7 +104,7 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
     /**
      * @test
      */
-    public function attributeMapperReturnsConfiguredCallbackIfConfigured()
+    public function attributeMapperReturnsConfiguredCallableIfConfiguredWithAnonymousFunction()
     {
         $config = AuthConfig::fromArray([
             'mapAttributes' => fn (AuthConfig $config, array $input) => 'hello',
@@ -114,6 +114,26 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertIsCallable($config->attributeMapper());
         // assert it is the callable we expect
         $this->assertEquals('hello', $config->attributeMapper()($config, []));
+    }
+
+    /**
+     * @test
+     */
+    public function attributeMapperReturnsConfiguredCallableWhenConfiguredWithStaticClassNameAndMethod()
+    {
+        $config = AuthConfig::fromArray(['mapAttributes' => __CLASS__ . '::mapAttributes']);
+        $mapper = $config->attributeMapper();
+        $this->assertIsCallable($mapper);
+        $this->assertEquals('test', $mapper());
+    }
+
+    /**
+     * Just used for testing a custom callable for mapAttributes (see above test)
+     * @return string
+     */
+    public static function mapAttributes()
+    {
+        return 'test';
     }
 
     /**
