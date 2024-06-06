@@ -4,6 +4,7 @@ namespace SamYapp\LaravelExternalAuth;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;
+use Symfony\Polyfill\Intl\Icu\Exception\MethodNotImplementedException;
 
 /**
  * UserProvider that "retrieves" a "user" by creating a new instance of the user model
@@ -11,7 +12,9 @@ use Illuminate\Contracts\Auth\UserProvider;
  */
 class TransientUserProvider implements UserProvider
 {
-    public function __construct(/** @var the class to create user objects in */public string $modelClass) {}
+    public function __construct(/** @var the class to create user objects in */ public string $modelClass)
+    {
+    }
 
     public function retrieveByCredentials(array $credentials)
     {
@@ -45,4 +48,9 @@ class TransientUserProvider implements UserProvider
         return false;
     }
 
+    /** @codeCoverageIgnore */
+    public function rehashPasswordIfRequired(Authenticatable $user, array $credentials, bool $force = false)
+    {
+        return;
+    }
 }

@@ -57,6 +57,12 @@ class TransientUser implements Authenticatable
         $this->methodNotImplemented(__METHOD__);
     }
 
+    /** @codeCoverageIgnore */
+    public function getAuthPasswordName()
+    {
+        $this->methodNotImplemented(__METHOD__);
+    }
+
     /**
      * Get the token value for the "remember me" session.
      *
