@@ -6,7 +6,15 @@ use Illuminate\Contracts\Auth\Authenticatable;
 
 class TransientUser implements Authenticatable
 {
+    /**
+     * @var array - array of attribute-name => attribute-value
+     */
     protected array $attributes = [];
+
+    /**
+     * @var string - Name of the attribute that uniquely identifies the user.
+     */
+    protected ?string $authIdentifierName = null;
 
     public function __get($name)
     {
@@ -28,7 +36,18 @@ class TransientUser implements Authenticatable
      */
     public function getAuthIdentifierName()
     {
-        $this->methodNotImplemented(__METHOD__);
+        return $this->authIdentifierName;
+    }
+
+    /**
+     * Sets the name of the attribute that uniquely identifies a user.
+     * Some Laravel code expects this method to work for Authenticatable objects
+     * @param string|null $name
+     * @return void
+     */
+    public function setAuthIdentifierName(?string $name = null)
+    {
+        $this->authIdentifierName = $name;
     }
 
     protected function methodNotImplemented(string $method)
@@ -37,13 +56,15 @@ class TransientUser implements Authenticatable
     }
     /**
      * Get the unique identifier for the user.
-     * @codeCoverageIgnore
-     *
+     * @throws \InvalidArgumentException
      * @return mixed
      */
     public function getAuthIdentifier()
     {
-        $this->methodNotImplemented(__METHOD__);
+        if ($this->getAuthIdentifierName()) {
+            return $this->{$this->getAuthIdentifierName()};
+        }
+        throw new \InvalidArgumentException(sprintf('No authIdentifierName set in %s::%s', __CLASS__, __METHOD__));
     }
 
     /**
@@ -53,6 +74,12 @@ class TransientUser implements Authenticatable
      * @return string
      */
     public function getAuthPassword()
+    {
+        $this->methodNotImplemented(__METHOD__);
+    }
+
+    /** @codeCoverageIgnore */
+    public function getAuthPasswordName()
     {
         $this->methodNotImplemented(__METHOD__);
     }

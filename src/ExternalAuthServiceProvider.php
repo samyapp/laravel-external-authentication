@@ -20,8 +20,8 @@ class ExternalAuthServiceProvider extends ServiceProvider
         $externalAuthConfig = AuthConfig::fromArray($config->get('external-auth') ?? []);
 
         // register our provider which we use
-        $auth->provider('transient', function ($app, array $config) {
-           return new TransientUserProvider($config['model'] ?? TransientUser::class); 
+        $auth->provider('transient', function ($app, array $config) use($externalAuthConfig) {
+           return new TransientUserProvider($config['model'] ?? TransientUser::class, $externalAuthConfig->authIdentifierName);
         });
 
         // Register the custom guard driver

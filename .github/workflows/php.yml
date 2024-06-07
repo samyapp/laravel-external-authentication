@@ -11,14 +11,25 @@ permissions:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        php_version: ["8.2", "8.3"]
 
     runs-on: ubuntu-latest
-
+    container: "php:${{ matrix.php_version }}-alpine"
     steps:
     - uses: actions/checkout@v3
 
+    - name: php version
+      run: php -v
+
+    - name: Install Composer
+      run: |
+        curl https://getcomposer.org/download/latest-stable/composer.phar -o composer.phar
+        chmod a+x composer.phar
+    
     - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      run: ./composer.phar validate --strict
 
     - name: Cache Composer packages
       id: composer-cache
@@ -30,7 +41,16 @@ jobs:
           ${{ runner.os }}-php-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: ./composer.phar install --prefer-dist --no-progress
 
     - name: Run test suite
-      run: composer run-script test
+      run: ./composer.phar run-script test
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Notify Packagist
+      run: |
+        curl -XPOST -H'content-type:application/json' 'https://packagist.org/api/update-package?username=samyapp&apiToken=${{ secrets.PACKAGIST_API_TOKEN }}' \
+          -d'{"repository":{"url":"https://packagist.org/packages/samyapp/laravel-external-authentication"}}'

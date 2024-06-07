@@ -16,6 +16,9 @@ class AuthConfig
     /** @var array|string[] names of attributes to pass to UserProvider::retrieveByCredentials */
     public array $credentialAttributes = ['email'];
 
+    /** @var string|null name of the user model attribute that uniquely identifies the authenticated user */
+    public ?string $authIdentifierName = null;
+
     /** @var string - the name for this auth guard */
 	public string $id = 'external-auth';
 
