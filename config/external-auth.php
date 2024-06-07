@@ -40,6 +40,12 @@ return [
     //    'email' => [ 'external' => 'MELLON_MAIL', 'required' => true],
     ],
 
+    // name of the attribute on the user model that uniquely identifies the authenticated user.
+    // if using an eloquent model you won't need to change this, but if using the TransientUser then you may
+    // need to as some bits of Laravel expect to be able to retrieve the unique identifier of an authenticated user.
+    // e.g. "uid", "username", "email"
+    'authIdentifierName' => null,
+
     //
     // One or more attributes from the attributeMap that will be used by the user provider's retrieveByCredentials()
     // method to identify the user model that is being authenticated.
