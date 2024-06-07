@@ -46,6 +46,9 @@ jobs:
     - name: Run test suite
       run: ./composer.phar run-script test
 
+  publish:
+    runs-on: ubuntu-latest
+    steps:
     - name: Notify Packagist
       run: |
         curl -XPOST -H'content-type:application/json' 'https://packagist.org/api/update-package?username=samyapp&apiToken=${{ secrets.PACKAGIST_API_TOKEN }}' \
