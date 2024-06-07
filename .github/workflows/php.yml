@@ -25,11 +25,11 @@ jobs:
 
     - name: Install Composer
       run: |
-        php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-        php -r composer-setup.php
+        curl https://getcomposer.org/download/latest-stable/composer.phar -o composer.phar
+        chmod a+x composer.phar
     
     - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      run: ./composer.phar validate --strict
 
     - name: Cache Composer packages
       id: composer-cache
