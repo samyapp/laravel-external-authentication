@@ -46,7 +46,10 @@ jobs:
     - name: Run test suite
       run: ./composer.phar run-script test
 
+    - name: Install Laravel 11
+
   publish:
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - name: Notify Packagist
