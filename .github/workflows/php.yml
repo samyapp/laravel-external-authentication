@@ -22,6 +22,9 @@ jobs:
 
     - name: php version
       run: php -v
+
+    - name: Install Composer
+      run: php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && php -r composer-setup.php
     
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
