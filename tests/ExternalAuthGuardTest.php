@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Mockery;
 use Mockery\MockInterface;
 use Psr\Log\LoggerInterface;
@@ -169,10 +170,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('external-auth.credentialAttributes', array_keys($this->developmentAttributes));
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserConfig
-     */
+    #[DefineEnvironment('configureTransientUserConfig')]
     public function userReturnsTransientUserWhenConfiguredAndAttributesPresent()
     {
         $guard = app('auth')->guard();
@@ -296,10 +294,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         });
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserConfig
-     */
+    #[DefineEnvironment('configureTransientUserConfig')]
     public function loginWorksAgainAfterALogout()
     {
         $guard = app('auth')->guard();
@@ -311,10 +306,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($user, $guard->user());
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserConfig
-     */
+    #[DefineEnvironment('configureTransientUserConfig')]
     public function logoutUnsetsTheUserAndEnsuresUserReturnsNullForRestOfRequest()
     {
         $guard = app('auth')->guard();

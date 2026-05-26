@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Foundation\Application;
 use Illuminate\Log\Logger;
 use Psr\Log\LoggerInterface;
 use SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes;
@@ -24,14 +25,11 @@ class ExternalAuthGuard implements Guard
     // Laravel trait that implements some required methods
     use GuardHelpers;
 
-    /** @var AuthConfig - configuration information */
-    public AuthConfig $config;
-
     /** @var Dispatcher - event dispatcher */
     public Dispatcher $dispatcher;
 
-    /** @var array - input data from external request */
-    public array $input;
+    /** @var array - input data from external request (cached from creation) */
+    protected array $cachedInput;
 
     /** @var string - the name of this guard in the auth configuration (default is 'web') */
     public string $guardName;
@@ -42,10 +40,15 @@ class ExternalAuthGuard implements Guard
     /** @var bool - true if logout() has been called in the current request, unless login() has since been called */
     protected $loggedOut = false;
 
+    /** @var Application - application instance for dynamic config reading */
+    protected Application $app;
+    /** @var bool - whether to use the static config passed into constructor */
+    protected bool $useStaticConfig = false;
+
     /**
      * Create a new authentication guard.
 
-     * @param AuthConfig $config - Configuration object
+     * @param Application $app - Application instance
      * @param UserProvider $provider - User Provider to retrieve matching user
      * @param array $input - The input to process (e.g. Request::server() or similar)
      * @param Dispatcher $dispatcher - The event dispatcher to dispatch events with
@@ -53,7 +56,7 @@ class ExternalAuthGuard implements Guard
      * @param ?LoggerInterface $logger - Logger to use
      */
     public function __construct(
-        AuthConfig  $config,
+        mixed $configOrApp,
         UserProvider $provider,
         array     $input,
         Dispatcher $dispatcher,
@@ -61,12 +64,57 @@ class ExternalAuthGuard implements Guard
         ?LoggerInterface $logger = null,
     )
     {
+        // Support old constructor signature where first arg was AuthConfig
+        if ($configOrApp instanceof AuthConfig) {
+            $this->config = $configOrApp;
+            $this->app = function_exists('app') ? app() : null;
+            $this->useStaticConfig = true;
+        } else {
+            $this->app = $configOrApp;
+            $this->config = AuthConfig::fromArray($this->app['config']->get('external-auth') ?? []);
+        }
+
         $this->setProvider($provider);
-        $this->config = $config;
-        $this->input = $input;
+        $this->cachedInput = $input;
         $this->dispatcher = $dispatcher;
         $this->guardName = $name;
         $this->logger = $logger;
+
+        // If the configured user provider is the transient driver, ensure we use our TransientUserProvider
+        try {
+            $providerName = $this->config->userProvider ?? ($this->app['config']->get('auth.defaults.provider') ?? 'users');
+            $providerConfig = $this->app['config']->get('auth.providers.' . $providerName, []);
+            if (($providerConfig['driver'] ?? null) === 'transient' && !($this->getProvider() instanceof TransientUserProvider)) {
+                $this->setProvider(new TransientUserProvider($providerConfig['model'] ?? TransientUser::class, $this->config->authIdentifierName));
+            }
+        } catch (\Throwable $e) {
+            // ignore - best-effort compatibility when app/config not available in tests
+        }
+    }
+
+    /**
+     * Get the configuration dynamically from the app
+     */
+    public function config(): AuthConfig
+    {
+        if ($this->useStaticConfig && isset($this->config)) {
+            return $this->config;
+        }
+        return AuthConfig::fromArray($this->app['config']->get('external-auth') ?? []);
+    }
+    
+    /**
+     * Magic __get to provide dynamic input based on current config
+     */
+    public function __get($property)
+    {
+        if ($property === 'input') {
+            $config = $this->config();
+            return $config->developmentMode
+                ? $config->developmentAttributes
+                : $this->cachedInput;
+        }
+        return null;
     }
 
     /**
@@ -76,14 +124,20 @@ class ExternalAuthGuard implements Guard
     {
         // if we already have a user for *this request* we don't need to redo everything
         if (!$this->loggedOut && is_null($this->user)) {
-            if ($this->config->logInput) {
-                $this->logger?->log($this->config->logLevel ?? 'info', 'External authentication input', $this->input);
+            $config = $this->config();
+            // Update input if development mode has changed since guard was created
+            $input = $config->developmentMode
+                ? $config->developmentAttributes
+                : $this->input;
+            
+            if ($config->logInput) {
+                $this->logger?->log($config->logLevel ?? 'info', 'External authentication input', $input);
             }
-            if ($userAttributes = $this->config->attributeMapper()($this->config, $this->input)) {
+            if ($userAttributes = $config->attributeMapper()($config, $input)) {
                 // if we have attributes, do they meet our validation criteria?
-                if (!($missingAttributes = $this->getMissingRequiredAttributes($this->config, $userAttributes))) {
+                if (!($missingAttributes = $this->getMissingRequiredAttributes($config, $userAttributes))) {
                     // use the attributes we consider credentials to retrieve the user
-                    $credentials = array_intersect_key($userAttributes, array_flip($this->config->credentialAttributes));
+                    $credentials = array_intersect_key($userAttributes, array_flip($config->credentialAttributes));
                     $user = $this->getProvider()->retrieveByCredentials($credentials);
                     if ($user) {
                         $this->setAttributes($user, $userAttributes);
@@ -94,9 +148,9 @@ class ExternalAuthGuard implements Guard
                 } else {
                     // attributes present but missing some required ones
                     // log if desired, and dispatch an event so the app can further handle this if desired
-                    if ($this->config->logInput) {
-                        $this->logger?->log($this->config->logLevel ?? 'info', 'Found Attributes: ', $userAttributes);
-                        $this->logger?->log($this->config->logLevel ?? 'info', 'Missing Attributes: ' . collect($missingAttributes)
+                    if ($config->logInput) {
+                        $this->logger?->log($config->logLevel ?? 'info', 'Found Attributes: ', $userAttributes);
+                        $this->logger?->log($config->logLevel ?? 'info', 'Missing Attributes: ' . collect($missingAttributes)
                             ->map(fn ($attr) => $attr->name. ':' . $attr->externalName)
                             ->join(', ')
                         );

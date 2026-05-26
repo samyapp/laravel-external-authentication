@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 use SamYapp\LaravelExternalAuth\DefaultUserCreator;
 use SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes;
 use SamYapp\LaravelExternalAuth\Events\UnknownUserAuthenticating;
@@ -86,10 +87,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('auth.providers.users.driver', 'transient');
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserProviderWithDefaultUserModel
-     */
+    #[DefineEnvironment('configureTransientUserProviderWithDefaultUserModel')]
     public function transientUserAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
         Event::fake();
@@ -117,10 +115,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $this->userModel = TransientUser::class; // will be used in defineEnvironment
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserProviderWithTransientUserModel
-     */
+    #[DefineEnvironment('configureTransientUserProviderWithTransientUserModel')]
     public function transientUserWithTransientUserModelAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
         Event::fake();
@@ -205,10 +200,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         ]);
     }
 
-    /**
-     * @test
-     * @define-env configureMissingRequiredAttributes
-     */
+    #[DefineEnvironment('configureMissingRequiredAttributes')]
     public function existingUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
     {
         Event::fake();
@@ -237,10 +229,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         app('config')->set('auth.providers.users.driver', 'transient');
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserProviderAndMissingRequiredAttributes
-     */
+    #[DefineEnvironment('configureTransientUserProviderAndMissingRequiredAttributes')]
     public function transientUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
     {
         Event::fake();

@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Illuminate\Config\Repository;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Psr\Log\LoggerInterface;
 use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
 use SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider;
@@ -70,10 +71,7 @@ class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('auth.providers.users.driver', 'transient');
     }
 
-    /**
-     * @test
-     * @define-env useTransientUserProvider
-     */
+    #[DefineEnvironment('useTransientUserProvider')]
     public function ServiceProviderRegistersTransientUserProvider()
     {
         $this->assertInstanceOf(TransientUserProvider::class, auth()->getProvider());
@@ -91,19 +89,13 @@ class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('external-auth.developmentAttributes', $this->developmentAttributes);
     }
 
-    /**
-     * @test
-     * @define-env enableDevelopmentMode
-     */
+    #[DefineEnvironment('enableDevelopmentMode')]
     public function ServiceProviderSetsInputToDevelopmentAttributesIfEnabled()
     {
         $this->assertEquals($this->developmentAttributes, auth()->guard('web')->input);
     }
 
-    /**
-     * @define-env enableDevelopmentMode
-     * @test
-     */
+    #[DefineEnvironment('enableDevelopmentMode')]
     public function exceptionThrownIfDevelopmentModeEnabledInProduction()
     {
         $this->expectException(\InvalidArgumentException::class);
