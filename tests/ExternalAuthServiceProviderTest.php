@@ -71,6 +71,7 @@ class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('auth.providers.users.driver', 'transient');
     }
 
+    #[Test]
     #[DefineEnvironment('useTransientUserProvider')]
     public function ServiceProviderRegistersTransientUserProvider()
     {
@@ -89,12 +90,14 @@ class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('external-auth.developmentAttributes', $this->developmentAttributes);
     }
 
+    #[Test]
     #[DefineEnvironment('enableDevelopmentMode')]
     public function ServiceProviderSetsInputToDevelopmentAttributesIfEnabled()
     {
         $this->assertEquals($this->developmentAttributes, auth()->guard('web')->input);
     }
 
+    #[Test]
     #[DefineEnvironment('enableDevelopmentMode')]
     public function exceptionThrownIfDevelopmentModeEnabledInProduction()
     {

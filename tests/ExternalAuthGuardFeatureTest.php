@@ -87,6 +87,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('auth.providers.users.driver', 'transient');
     }
 
+    #[Test]
     #[DefineEnvironment('configureTransientUserProviderWithDefaultUserModel')]
     public function transientUserAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
@@ -115,6 +116,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $this->userModel = TransientUser::class; // will be used in defineEnvironment
     }
 
+    #[Test]
     #[DefineEnvironment('configureTransientUserProviderWithTransientUserModel')]
     public function transientUserWithTransientUserModelAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
@@ -200,6 +202,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         ]);
     }
 
+    #[Test]
     #[DefineEnvironment('configureMissingRequiredAttributes')]
     public function existingUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
     {
@@ -229,6 +232,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         app('config')->set('auth.providers.users.driver', 'transient');
     }
 
+    #[Test]
     #[DefineEnvironment('configureTransientUserProviderAndMissingRequiredAttributes')]
     public function transientUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
     {

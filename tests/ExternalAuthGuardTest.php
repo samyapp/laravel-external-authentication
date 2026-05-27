@@ -170,6 +170,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('external-auth.credentialAttributes', array_keys($this->developmentAttributes));
     }
 
+    #[Test]
     #[DefineEnvironment('configureTransientUserConfig')]
     public function userReturnsTransientUserWhenConfiguredAndAttributesPresent()
     {
@@ -294,6 +295,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         });
     }
 
+    #[Test]
     #[DefineEnvironment('configureTransientUserConfig')]
     public function loginWorksAgainAfterALogout()
     {
@@ -306,6 +308,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($user, $guard->user());
     }
 
+    #[Test]
     #[DefineEnvironment('configureTransientUserConfig')]
     public function logoutUnsetsTheUserAndEnsuresUserReturnsNullForRestOfRequest()
     {
