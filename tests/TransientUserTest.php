@@ -5,15 +5,13 @@ namespace Tests;
 use Illuminate\Foundation\Auth\User;
 use SamYapp\LaravelExternalAuth\TransientUser;
 use SamYapp\LaravelExternalAuth\TransientUserProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers SamYapp\LaravelExternalAuth\TransientUser
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\TransientUser::class)]
 class TransientUserTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function getAndSetGetAndSetAttributes()
     {
         $attrs = ['foo' => 'bar', 'roles' => ['bread', 'sausage']];

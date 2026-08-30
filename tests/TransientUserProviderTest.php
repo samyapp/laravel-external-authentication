@@ -5,16 +5,14 @@ namespace Tests;
 use Illuminate\Foundation\Auth\User;
 use SamYapp\LaravelExternalAuth\TransientUser;
 use SamYapp\LaravelExternalAuth\TransientUserProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers SamYapp\LaravelExternalAuth\TransientUserProvider
- * @covers SamYapp\LaravelExternalAuth\TransientUser
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\TransientUserProvider::class)]
+#[CoversClass(\SamYapp\LaravelExternalAuth\TransientUser::class)]
 class TransientUserProviderTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function constructorSetsTheModelPropertyFromItsParameter()
     {
         $model = TransientUser::class;
@@ -22,9 +20,7 @@ class TransientUserProviderTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($model, $provider->modelClass);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function retrieveByCredentialsCreatesAnInstanceOfTheClassNamePassedToTheConstructor()
     {
         foreach ([TransientUser::class, User::class] as $className) {
@@ -37,9 +33,7 @@ class TransientUserProviderTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function retrieveByCredentialsAssignsItsAttributeParameterKeyValuePairsOnTheUserObject()
     {
         $provider = new TransientUserProvider(TransientUser::class);

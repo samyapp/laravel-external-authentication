@@ -11,16 +11,14 @@ use SamYapp\LaravelExternalAuth\DefaultAttributeMapper;
 use SamYapp\LaravelExternalAuth\DefaultUserCreator;
 use SamYapp\LaravelExternalAuth\DefaultUserSyncer;
 use SamYapp\LaravelExternalAuth\TransientUser;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \SamYapp\LaravelExternalAuth\AuthConfig
- * @covers \SamYapp\LaravelExternalAuth\AuthAttribute
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\AuthConfig::class)]
+#[CoversClass(\SamYapp\LaravelExternalAuth\AuthAttribute::class)]
 class AuthConfigTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function fromArraySetsObjectProperties()
     {
         // simple attributes with non-default values to check they
@@ -56,54 +54,42 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function defaultConfigSetsDevelopmentModeFalse()
     {
         $config = AuthConfig::fromArray([]);
         $this->assertFalse($config->developmentMode);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function defaultConfigSetsUserProviderNameToUsers()
     {
         $config = AuthConfig::fromArray([]);
         $this->assertEquals('users', $config->userProvider);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function defaultConfigSetsAttributePrefixToEmptyString()
     {
         $config = AuthConfig::fromArray([]);
         $this->assertEquals( '', $config->attributePrefix);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function fromArrayThrowsInvalidArgumentExceptionForUnknownConfigurationSettings()
     {
         $this->expectException(\InvalidArgumentException::class);
         AuthConfig::fromArray(['foo' => 'bar']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function attributeMapperReturnsDefaultAttributeMapperIfmapAttributesNotSet()
     {
         $config = AuthConfig::fromArray([]);
         $this->assertInstanceOf(DefaultAttributeMapper::class, $config->attributeMapper());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function attributeMapperReturnsConfiguredCallableIfConfiguredWithAnonymousFunction()
     {
         $config = AuthConfig::fromArray([
@@ -116,9 +102,7 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('hello', $config->attributeMapper()($config, []));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function attributeMapperReturnsConfiguredCallableWhenConfiguredWithStaticClassNameAndMethod()
     {
         $config = AuthConfig::fromArray(['mapAttributes' => __CLASS__ . '::mapAttributes']);
@@ -136,9 +120,7 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         return 'test';
     }
 
-    /**
-	 * @test
-	 */
+    #[Test]
     public function fromArrayDoesNotChangePropertiesWhenNotInInput()
     {
 		$defaultConfig = AuthConfig::fromArray([]);
@@ -151,9 +133,7 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
 		}
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function attributesFromArrayCreatesAttributesIndexedByName()
     {
         $input = [
@@ -190,9 +170,7 @@ class AuthConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($input[0], $attributes['attr']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function attributesFromArrayThrowsInvalidArgumentExceptionForInvalidInputFormat()
     {
         $this->expectException(\InvalidArgumentException::class);

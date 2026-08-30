@@ -17,11 +17,12 @@ use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
 use SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider;
 use SamYapp\LaravelExternalAuth\TransientUser;
 use SamYapp\LaravelExternalAuth\TransientUserProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 
-/**
- * @covers \SamYapp\LaravelExternalAuth\ExternalAuthGuard
- * @covers \SamYapp\LaravelExternalAuth\AuthConfig
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\ExternalAuthGuard::class)]
+#[CoversClass(\SamYapp\LaravelExternalAuth\AuthConfig::class)]
 class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
 {
     protected $developmentAttributes = ['foo' => 'bar', 'one' => 'two'];
@@ -50,9 +51,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function constructorAssignsInputsToProperties()
     {
         $config = AuthConfig::fromArray(['attributeMap' => ['something' => 'somethingElse', 'one', '42']]);
@@ -70,9 +69,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($logger, $guard->logger);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function constructorSetsConfigUserProviderAndRequest()
     {
         $auth = app('auth');
@@ -85,9 +82,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($input, $guard->input);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function userReturnsTheAuthenticatedUserForMultipleCallsOnTheSameRequest()
     {
         $auth = app('auth');
@@ -101,9 +96,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($user, $guard->user());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function userLogsInputAndAttributesWhenLogInputIsTrueAndAttributesAreMissing()
     {
         $auth = app('auth');
@@ -123,9 +116,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $guard->user();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function userLogsInputAndNotAttributesWhenLogInputIsTrueAndAttributesAreNotMissing()
     {
         $auth = app('auth');
@@ -145,14 +136,12 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $guard->user();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function userReturnsNullIfNoAuthenticationPresent()
     {
         $this->assertNull(app('auth')->guard('web')->user());
     }
-    
+
     /**
      * Configure app to use TransientUserProvider
      */
@@ -169,10 +158,8 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('external-auth.credentialAttributes', array_keys($this->developmentAttributes));
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserConfig
-     */
+    #[Test]
+    #[DefineEnvironment('configureTransientUserConfig')]
     public function userReturnsTransientUserWhenConfiguredAndAttributesPresent()
     {
         $guard = app('auth')->guard();
@@ -183,9 +170,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function setAttributesSetsPropertiesOnAuthenticatableObject()
     {
         $guard = new ExternalAuthGuard(
@@ -202,9 +187,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getMissingRequiredAttributesReturnsEmptyArrayWhenNoAttributesAreRequired()
     {
         $config = AuthConfig::fromArray([
@@ -220,9 +203,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($expected, $guard->getMissingRequiredAttributes($config, $input));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getMissingRequiredAttributesReturnsEmptyArrayWhenRequiredAttributesArePresent()
     {
         $config = AuthConfig::fromArray([
@@ -238,9 +219,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($expected, $guard->getMissingRequiredAttributes($config, $input));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getMissingRequiredAttributesReturnsAttributesWhichAreMissingFromInput()
     {
         $config = AuthConfig::fromArray([
@@ -256,9 +235,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($expected, $guard->getMissingRequiredAttributes($config, $input));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function validateReturnsFalseEvenIfItsInputContainsCredentialAttributes()
     {
         $config = AuthConfig::fromArray([
@@ -270,9 +247,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertFalse($guard->validate($credentials));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function loginSetsTheUserToTheGivenUser()
     {
         $guard = new ExternalAuthGuard(AuthConfig::fromArray([]), app('auth')->guard()->getProvider(), [], app(Dispatcher::class));
@@ -281,9 +256,7 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($user, $guard->user());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function setUserSetsTheUserToTheGivenUserAndDispatchesAuthenticatedEvent()
     {
         Event::fake();
@@ -296,10 +269,8 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         });
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserConfig
-     */
+    #[Test]
+    #[DefineEnvironment('configureTransientUserConfig')]
     public function loginWorksAgainAfterALogout()
     {
         $guard = app('auth')->guard();
@@ -311,10 +282,8 @@ class ExternalAuthGuardTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($user, $guard->user());
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserConfig
-     */
+    #[Test]
+    #[DefineEnvironment('configureTransientUserConfig')]
     public function logoutUnsetsTheUserAndEnsuresUserReturnsNullForRestOfRequest()
     {
         $guard = app('auth')->guard();

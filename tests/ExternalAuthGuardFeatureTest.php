@@ -15,11 +15,12 @@ use SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider;
 use SamYapp\LaravelExternalAuth\TransientUser;
 use SamYapp\LaravelExternalAuth\TransientUserProvider;
 use Tests\Support\TestUser;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 
-/**
- * @covers \SamYapp\LaravelExternalAuth\ExternalAuthGuard
- * @covers \SamYapp\LaravelExternalAuth\AuthConfig
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\ExternalAuthGuard::class)]
+#[CoversClass(\SamYapp\LaravelExternalAuth\AuthConfig::class)]
 class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
 {
     protected $developmentAttributes = ['foo' => 'bar', 'one' => 'two'];
@@ -86,10 +87,8 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('auth.providers.users.driver', 'transient');
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserProviderWithDefaultUserModel
-     */
+    #[Test]
+    #[DefineEnvironment('configureTransientUserProviderWithDefaultUserModel')]
     public function transientUserAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
         Event::fake();
@@ -117,10 +116,8 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         $this->userModel = TransientUser::class; // will be used in defineEnvironment
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserProviderWithTransientUserModel
-     */
+    #[Test]
+    #[DefineEnvironment('configureTransientUserProviderWithTransientUserModel')]
     public function transientUserWithTransientUserModelAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
         Event::fake();
@@ -141,9 +138,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         Event::assertNotDispatched(Login::class);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function existingUserAuthenticatesWithCorrectAttributesAndDispatchesAuthenticatedEvent()
     {
         Event::fake();
@@ -171,9 +166,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         Event::assertNotDispatched(Login::class);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function missingUserCreatedByEventListenerIsReturnedByUser()
     {
         // user should not exist
@@ -205,10 +198,8 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         ]);
     }
 
-    /**
-     * @test
-     * @define-env configureMissingRequiredAttributes
-     */
+    #[Test]
+    #[DefineEnvironment('configureMissingRequiredAttributes')]
     public function existingUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
     {
         Event::fake();
@@ -237,10 +228,8 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         app('config')->set('auth.providers.users.driver', 'transient');
     }
 
-    /**
-     * @test
-     * @define-env configureTransientUserProviderAndMissingRequiredAttributes
-     */
+    #[Test]
+    #[DefineEnvironment('configureTransientUserProviderAndMissingRequiredAttributes')]
     public function transientUserNotAuthenticatedIfAttributesAreMissingAndRelevantEventsDispatched()
     {
         Event::fake();
@@ -253,9 +242,7 @@ class ExternalAuthGuardFeatureTest extends \Orchestra\Testbench\TestCase
         Event::assertNotDispatched(Authenticated::class);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function loggingOutAnExistingAuthenticatedUserDispatchesLogoutEventAndUserThenReturnsNull()
     {
         Event::fake();
