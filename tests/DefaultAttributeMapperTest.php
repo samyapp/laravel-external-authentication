@@ -4,16 +4,14 @@ namespace Tests;
 
 use SamYapp\LaravelExternalAuth\AuthConfig;
 use SamYapp\LaravelExternalAuth\DefaultAttributeMapper;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \SamYapp\LaravelExternalAuth\DefaultAttributeMapper
- * @covers \SamYapp\LaravelExternalAuth\AuthConfig
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\DefaultAttributeMapper::class)]
+#[CoversClass(\SamYapp\LaravelExternalAuth\AuthConfig::class)]
 class DefaultAttributeMapperTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function __invokeMatchesSingleValueAttributesWithAndWithoutPrefix()
     {
         $expected = [
@@ -43,9 +41,7 @@ class DefaultAttributeMapperTest extends \PHPUnit\Framework\TestCase
         $this->assertEqualsCanonicalizing($expected, $config->attributeMapper()($config, $inputPrefixed));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function __invokeMatchesUsingRegexIntoArray()
     {
         // the configured attributes and mappings expected

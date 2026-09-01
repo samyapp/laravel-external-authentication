@@ -7,11 +7,12 @@ use Psr\Log\LoggerInterface;
 use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
 use SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider;
 use SamYapp\LaravelExternalAuth\TransientUserProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 
-/**
- * @covers \SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider
- * @covers \SamYapp\LaravelExternalAuth\AuthConfig::fromArray
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\ExternalAuthServiceProvider::class)]
+#[CoversClass(\SamYapp\LaravelExternalAuth\AuthConfig::class)]
 class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
 {
     protected $developmentAttributes = ['foo' => 'bar', 'one' => 'two'];
@@ -48,17 +49,13 @@ class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function ServiceProviderRegistersGuard()
     {
         $this->assertInstanceOf(ExternalAuthGuard::class, auth()->guard('web'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function ServiceProviderPassesALoggerToTheGuard()
     {
         $provider = auth()->guard('web');
@@ -70,16 +67,14 @@ class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('auth.providers.users.driver', 'transient');
     }
 
-    /**
-     * @test
-     * @define-env useTransientUserProvider
-     */
+    #[Test]
+    #[DefineEnvironment('useTransientUserProvider')]
     public function ServiceProviderRegistersTransientUserProvider()
     {
         $this->assertInstanceOf(TransientUserProvider::class, auth()->getProvider());
     }
 
-    /** @test */
+    #[Test]
     public function ServiceProviderSetsInputToServerVarsByDefault()
     {
         $this->assertEquals(app('request')->server(), auth()->guard('web')->input);
@@ -91,19 +86,15 @@ class ExternalAuthServiceProviderTest extends \Orchestra\Testbench\TestCase
         $app['config']->set('external-auth.developmentAttributes', $this->developmentAttributes);
     }
 
-    /**
-     * @test
-     * @define-env enableDevelopmentMode
-     */
+    #[Test]
+    #[DefineEnvironment('enableDevelopmentMode')]
     public function ServiceProviderSetsInputToDevelopmentAttributesIfEnabled()
     {
         $this->assertEquals($this->developmentAttributes, auth()->guard('web')->input);
     }
 
-    /**
-     * @define-env enableDevelopmentMode
-     * @test
-     */
+    #[Test]
+    #[DefineEnvironment('enableDevelopmentMode')]
     public function exceptionThrownIfDevelopmentModeEnabledInProduction()
     {
         $this->expectException(\InvalidArgumentException::class);

@@ -5,15 +5,13 @@ namespace Tests;
 use SamYapp\LaravelExternalAuth\AuthAttribute;
 use SamYapp\LaravelExternalAuth\AuthConfig;
 use SamYapp\LaravelExternalAuth\DefaultAttributeMapper;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \SamYapp\LaravelExternalAuth\AuthAttribute
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\AuthAttribute::class)]
 class AuthAttributeTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function constructorSetsPropertiesThatCanBeAccessedLater()
     {
         $name = 'attribute name';

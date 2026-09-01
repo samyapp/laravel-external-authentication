@@ -6,18 +6,16 @@ use SamYapp\LaravelExternalAuth\AuthAttribute;
 use SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes;
 use SamYapp\LaravelExternalAuth\Events\UnknownUserAuthenticating;
 use SamYapp\LaravelExternalAuth\ExternalAuthGuard;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes
- */
+#[CoversClass(\SamYapp\LaravelExternalAuth\Events\IncompleteAuthenticationAttributes::class)]
 class IncompleteAuthenticationAttributesTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function constructorSetsParameterValuesToPublicProperties()
     {
-        $guard = $this->createMock(ExternalAuthGuard::class);
+        $guard = $this->createStub(ExternalAuthGuard::class);
         $attrs = ['foo' => 'bar'];
         $missing = [
             new AuthAttribute('missing1', 'x-missing-1', false),
