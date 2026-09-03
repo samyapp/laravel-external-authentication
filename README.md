@@ -1,5 +1,7 @@
 # Laravel External Authentication
 
+Tested on PHP 8.2 - 8.5, Laravel 10 - 13.
+
 Laravel authentication package that authenticates users based on HTTP request headers
 or environment variables set by an external authentication source such as
 Apache with basic authentication, SAML2 SSO via mod_auth_mellon, or a
